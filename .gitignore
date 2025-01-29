@@ -1,0 +1,41 @@
+# Environment files
+.env
+
+# Node modules and build output
+node_modules/
+build/
+package-lock.json
+run/
+
+# Logs
+*.log
+
+# VSCode
+.vscode/
+
+# IntelliJ IDEA
+*.iml
+.idea/
+
+# Compiled output
+main.js
+*.map
+
+# Obsidian
+data.json
+
+# macOS system files
+.DS_Store
+
+# Don't include the compiled main.js file in the repo.
+# They should be uploaded to GitHub releases instead.
+main.js
+
+# Exclude sourcemaps
+*.map
+
+# obsidian
+data.json
+
+# Exclude macOS Finder (System Explorer) View States
+.DS_Store
