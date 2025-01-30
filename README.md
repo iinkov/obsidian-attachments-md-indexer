@@ -1,4 +1,4 @@
-# Canvas to Markdown Indexer Plugin for Obsidian
+# Canvas to Markdown Indexer
 
 This plugin enhances Obsidian's ability to manage canvas files by creating index files in Markdown format. This ensures that canvas files and their connections are properly represented in graph views and are accessible to Obsidian plugins that primarily work with Markdown files.
 

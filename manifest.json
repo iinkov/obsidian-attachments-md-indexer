@@ -3,8 +3,7 @@
 	"name": "Attachments MD Indexer",
 	"version": "1.0.0",
 	"minAppVersion": "1.1.7",
-	"description": "Converts Obsidian canvas files to markdown index files, making canvas content searchable and graph-viewable within Obsidian",
+	"description": "Creates metadata notes for canvas files, enhancing graph view visibility and plugin compatibility",
 	"author": "Ian Inkov",
-	"authorUrl": "https://github.com/iinkov/attachments-md-indexer/issues",
 	"isDesktopOnly": false
 }
