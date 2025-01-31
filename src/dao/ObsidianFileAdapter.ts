@@ -1,4 +1,4 @@
-import {App, TFile} from 'obsidian';
+import {App, TFile, TAbstractFile} from 'obsidian';
 import {FileAdapter} from './FileAdapter';
 import {File} from "./FileDao";
 
@@ -55,9 +55,9 @@ export class ObsidianFileAdapter implements FileAdapter {
 
 	async delete(filePath: string): Promise<void> {
 		const file = this.app.vault.getAbstractFileByPath(filePath);
-		if (!file || !(file instanceof TFile)) {
+		if (!file) {
 			throw new Error(`File not found: ${filePath}`);
 		}
-		await this.app.vault.delete(file);
+		await this.app.fileManager.trashFile(file);
 	}
 }
