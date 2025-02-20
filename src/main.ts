@@ -23,7 +23,7 @@ export default class ObsidianIndexer extends Plugin {
 		// Add command for manual conversion
 		this.addCommand({
 			id: 'convert-canvas-files',
-			name: 'Convert Canvas Files to Markdown',
+			name: 'Convert Canvas files to Markdown',
 			callback: async () => {
 				await canvasService.convertAllCanvasFiles();
 			},

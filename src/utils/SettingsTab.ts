@@ -15,8 +15,8 @@ export class SettingsTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Canvas Postfix')
-			.setDesc('File extension for converted canvas files (must end with ".md" and be at least 5 chars long). Example: ".canvas.md".  If you change this, you need to manually delete old converted files and re-run the conversion.')
+			.setName('Canvas postfix')
+			.setDesc('File extension for converted Canvas files (must end with ".md" and be at least 5 chars long). Example: ".canvas.md".  If you change this, you need to manually delete old converted files and re-run the conversion.')
 			.addText(text => text
 				.setPlaceholder('.canvas.md')
 				.setValue(this.settingsService.canvasPostfix)
@@ -28,8 +28,8 @@ export class SettingsTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Run on Start')
-			.setDesc('Automatically convert canvas files when plugin loads')
+			.setName('Run on start')
+			.setDesc('Automatically convert Canvas files when plugin loads')
 			.addToggle(toggle => toggle
 				.setValue(this.settingsService.runOnStart)
 				.onChange(async (value) => {
@@ -37,7 +37,7 @@ export class SettingsTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Index Folder')
+			.setName('Index folder')
 			.setDesc('Folder to store converted files (must be at least 3 chars). If you change this, you need to manually rename or delete the old folder and re-run the conversion.')
 			.addText(text => text
 				.setPlaceholder('index')
@@ -51,10 +51,10 @@ export class SettingsTab extends PluginSettingTab {
 
 		// Add Restore Defaults button
 		new Setting(containerEl)
-			.setName('Restore Default Settings')
+			.setName('Restore default settings')
 			.setDesc('Reset all settings to their default values')
 			.addButton(button => button
-				.setButtonText('Restore Defaults')
+				.setButtonText('Restore defaults')
 				.onClick(async () => {
 					await this.settingsService.restoreDefaults();
 					this.display(); // Refresh the settings UI

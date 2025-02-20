@@ -123,7 +123,7 @@ export class CanvasService {
 	}, modifiedFiles: { count: number; files: string[] }, totalCanvases: number): void {
 		console.log(
 			`Canvas indexing completed successfully\n` +
-			`Total canvases processed ${createdFiles.count + modifiedFiles.count + removedFiles.length}/${totalCanvases}\n` +
+			`Total Canvases processed ${createdFiles.count + modifiedFiles.count + removedFiles.length}/${totalCanvases}\n` +
 			`Created files ${createdFiles.count}\n` +
 			(createdFiles.count > 0 ?
 				`  ${createdFiles.files.map(f => `- ${f.replace('.canvas', '')}`).join('\n  ')}\n` : '') +
