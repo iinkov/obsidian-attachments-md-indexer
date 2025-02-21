@@ -24,7 +24,7 @@ export class ObsidianStorageAdapter implements StorageAdapter {
 	async delete(path: string): Promise<void> {
 		const file = this.app.vault.getAbstractFileByPath(path);
 		if (file) {
-			await this.app.vault.delete(file);
+			await this.app.fileManager.trashFile(file);
 		}
 	}
 }
