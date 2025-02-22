@@ -4,7 +4,7 @@ import {FileDaoImpl} from '../../src/dao/FileDaoImpl';
 import {InMemoryFileAdapter} from '../dao/InMemoryFileAdapter';
 import {createTestImageFile, readTestFile} from '../utils/testFileUtils';
 
-describe.skip('Integration Test: Image Indexer Conversion', () => {
+describe('Integration Test: Image Indexer Conversion', () => {
     let fileAdapter: InMemoryFileAdapter;
     let fileDao: FileDaoImpl;
     let pngConverter: PngConverterService;
@@ -37,7 +37,7 @@ describe.skip('Integration Test: Image Indexer Conversion', () => {
         expect(convertedContent).toEqual(expectedContent);
     });
 
-    it('should handle multiple image files', async () => {
+    it.skip('should handle multiple image files', async () => {
         await createImageFile('test-image.png');
         await createImageFile('test-image2.png');
         await pngConverter.convertFiles();
@@ -50,7 +50,7 @@ describe.skip('Integration Test: Image Indexer Conversion', () => {
         }
     });
 
-    it('should update modified image files', async () => {
+    it.skip('should update modified image files', async () => {
         await createImageFile('test-image.png');
         await pngConverter.convertFiles();
 
@@ -64,7 +64,7 @@ describe.skip('Integration Test: Image Indexer Conversion', () => {
         expect(convertedContent).toEqual(expectedContent);
     });
 
-    it('should remove orphaned files', async () => {
+    it.skip('should remove orphaned files', async () => {
         await createImageFile('test-image.png');
         await pngConverter.convertFiles();
 

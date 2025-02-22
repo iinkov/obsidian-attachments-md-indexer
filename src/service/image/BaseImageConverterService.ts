@@ -1,6 +1,7 @@
 import { BaseConverterService } from '../BaseConverterService';
 import { FileDao } from "../../dao/FileDao";
 import { INDEX_FILE_DESCRIPTION } from "../../utils/constants";
+import { parseImageContent } from '../../utils/imageParser';
 
 export abstract class BaseImageConverterService extends BaseConverterService {
     constructor(
@@ -17,19 +18,11 @@ export abstract class BaseImageConverterService extends BaseConverterService {
     protected convertContent(content: string, fileName: string): string {
         return `# ${fileName}
 
-[[${fileName}]]
+![[${fileName}|500]]
 
 ${INDEX_FILE_DESCRIPTION}
 
-# Image Preview
-
-![[${fileName}|500]]
-
-# Image Details
-
-- Type: ${this.getImageType()}
-- Path: \`${fileName}\`
-`;
+${parseImageContent(fileName)}`;
     }
 
     protected abstract getImageType(): string;

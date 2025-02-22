@@ -1,4 +1,5 @@
 import { FileDao } from "../../dao/FileDao";
+import { BaseImageConverterService } from "./BaseImageConverterService";
 import { PngConverterService } from "./PngConverterService";
 import { JpegConverterService } from "./JpegConverterService";
 
