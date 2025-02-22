@@ -4,6 +4,7 @@ import {FileAdapter} from "../../src/dao/FileAdapter";
 export class InMemoryFileAdapter implements FileAdapter {
 	private storage: Map<string, string> = new Map();
 	private modificationTimes: Map<string, number> = new Map();
+	private binaryStorage: Map<string, ArrayBuffer> = new Map();
 
 	async createFolder(path: string): Promise<void> {
 		if (!path) {
@@ -69,29 +70,67 @@ export class InMemoryFileAdapter implements FileAdapter {
 		this.modificationTimes.set(filePath, Date.now());
 	}
 
+	async createOrUpdateBinaryFile(filePath: string, content: ArrayBuffer): Promise<void> {
+		// Create parent folders if they don't exist
+		const parentPath = filePath.split('/').slice(0, -1).join('/');
+		if (parentPath) {
+			await this.createFolder(parentPath);
+		}
+
+		this.binaryStorage.set(filePath, content);
+		this.modificationTimes.set(filePath, Date.now());
+	}
+
 	async getFiles(): Promise<File[]> {
-		return Array.from(this.storage.entries())
+		const textFiles = Array.from(this.storage.entries())
 			.filter(([path]) => !path.endsWith('/.folder'))
-			.map(([path]) => {
-				const name = path.split('/').pop() || path;
+			.map(([path]) => this.createFileObject(path, false));
 
-				if (!this.modificationTimes.has(path)) {
-					this.modificationTimes.set(path, Date.now());
+		const binaryFiles = Array.from(this.binaryStorage.entries())
+			.map(([path]) => this.createFileObject(path, true));
+
+		return [...textFiles, ...binaryFiles];
+	}
+
+	private createFileObject(path: string, isBinary: boolean): File {
+		const name = path.split('/').pop() || path;
+
+		if (!this.modificationTimes.has(path)) {
+			this.modificationTimes.set(path, Date.now());
+		}
+
+		return new File(
+			path,
+			name,
+			this.modificationTimes.get(path)!,
+			async () => {
+				if (isBinary) {
+					throw new Error('Cannot read binary file as text');
 				}
+				const content = this.storage.get(path);
+				if (content === undefined) {
+					throw new Error(`File not found: ${path}`);
+				}
+				return content;
+			},
+			async () => {
+				if (!isBinary) {
+					throw new Error('Cannot read text file as binary');
+				}
+				return this.readBinary(path);
+			}
+		);
+	}
 
-				return new File(
-					path,
-					name,
-					this.modificationTimes.get(path)!,
-					async () => {
-						const content = this.storage.get(path);
-						if (content === undefined) {
-							throw new Error(`File not found: ${path}`);
-						}
-						return content;
-					}
-				);
-			});
+	async readBinary(filePath: string): Promise<ArrayBuffer> {
+		if (!this.binaryStorage.has(filePath)) {
+			throw new Error(`Binary file not found: ${filePath}`);
+		}
+		const content = this.binaryStorage.get(filePath);
+		if (!content) {
+			throw new Error(`Binary file not found: ${filePath}`);
+		}
+		return content;
 	}
 
 	clear(): void {

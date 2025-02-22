@@ -7,6 +7,8 @@ export interface FileAdapter {
 
 	read(filePath: string): Promise<string>;
 
+	readBinary(filePath: string): Promise<ArrayBuffer>;
+
 	create(filePath: string, content: string): Promise<void>;
 
 	delete(path: string): Promise<void>;
