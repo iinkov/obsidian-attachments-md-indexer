@@ -4,6 +4,7 @@ import {FileAdapter} from "../../src/dao/FileAdapter";
 export class InMemoryFileAdapter implements FileAdapter {
 	private storage: Map<string, string> = new Map();
 	private modificationTimes: Map<string, number> = new Map();
+	private binaryStorage: Map<string, ArrayBuffer> = new Map();
 
 	async createFolder(path: string): Promise<void> {
 		if (!path) {
@@ -89,9 +90,23 @@ export class InMemoryFileAdapter implements FileAdapter {
 							throw new Error(`File not found: ${path}`);
 						}
 						return content;
+					},
+					async () => {
+						return this.readBinary(path);
 					}
 				);
 			});
+	}
+
+	async readBinary(filePath: string): Promise<ArrayBuffer> {
+		if (!this.binaryStorage.has(filePath)) {
+			throw new Error(`Binary file not found: ${filePath}`);
+		}
+		const content = this.binaryStorage.get(filePath);
+		if (!content) {
+			throw new Error(`Binary file not found: ${filePath}`);
+		}
+		return content;
 	}
 
 	clear(): void {

@@ -20,6 +20,13 @@ export class ObsidianFileAdapter implements FileAdapter {
 							return this.app.vault.read(f);
 						}
 						throw new Error(`File not found: ${file.path}`);
+					},
+					async () => {
+						const f = this.app.vault.getAbstractFileByPath(file.path);
+						if (f && f instanceof TFile) {
+							return this.app.vault.readBinary(f);
+						}
+						throw new Error(`File not found: ${file.path}`);
 					}
 				)
 			)
@@ -40,7 +47,6 @@ export class ObsidianFileAdapter implements FileAdapter {
 		return this.app.vault.read(file);
 	}
 
-
 	async create(filePath: string, content: string): Promise<void> {
 		await this.app.vault.create(filePath, content);
 	}
@@ -59,5 +65,13 @@ export class ObsidianFileAdapter implements FileAdapter {
 			throw new Error(`File not found: ${filePath}`);
 		}
 		await this.app.fileManager.trashFile(file);
+	}
+
+	async readBinary(filePath: string): Promise<ArrayBuffer> {
+		const file = this.app.vault.getAbstractFileByPath(filePath);
+		if (!file || !(file instanceof TFile)) {
+			throw new Error(`File not found: ${filePath}`);
+		}
+		return this.app.vault.readBinary(file);
 	}
 }

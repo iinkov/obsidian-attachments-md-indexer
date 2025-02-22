@@ -51,6 +51,13 @@ export class FileDaoImpl implements FileDao {
 						throw new Error(`File not found: ${file.path}`);
 					}
 					return content;
+				},
+				async () => {
+					const content = this.fileAdapter.readBinary(file.path);
+					if (content === undefined) {
+						throw new Error(`File not found: ${file.path}`);
+					}
+					return content;
 				}
 			));
 	}
