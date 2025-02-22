@@ -1,16 +1,20 @@
 import {Plugin} from 'obsidian';
 import {CanvasServiceConfig} from "../service/CanvasServiceConfig";
+import { ImageParserConfig } from './ImageParserService';
 
 export interface Settings {
 	canvasPostfix: string;
 	runOnStart: boolean;
 	indexFolder: string;
+	googleApiKey: string;
 }
 
 export interface SettingsService extends CanvasServiceConfig {
 	readonly canvasPostfix: string;
 	readonly runOnStart: boolean;
 	readonly indexFolder: string;
+	readonly googleApiKey: string;
+	getApiKey(): string;
 
 	updateCanvasPostfix(value: string): Promise<void>;
 
@@ -18,10 +22,12 @@ export interface SettingsService extends CanvasServiceConfig {
 
 	updateIndexFolder(value: string): Promise<void>;
 
+	updateGoogleApiKey(value: string): Promise<void>;
+
 	restoreDefaults(): Promise<void>;
 }
 
-export class SettingsServiceImpl implements SettingsService {
+export class SettingsServiceImpl implements SettingsService, ImageParserConfig {
 	private settings: Settings;
 	private plugin: Plugin;
 
@@ -40,6 +46,14 @@ export class SettingsServiceImpl implements SettingsService {
 
 	get indexFolder(): string {
 		return this.settings.indexFolder;
+	}
+
+	get googleApiKey(): string {
+		return this.settings.googleApiKey;
+	}
+
+	getApiKey(): string {
+		return this.settings.googleApiKey;
 	}
 
 	async loadSettings(): Promise<void> {
@@ -64,6 +78,11 @@ export class SettingsServiceImpl implements SettingsService {
 		await this.saveSettings();
 	}
 
+	async updateGoogleApiKey(value: string): Promise<void> {
+		this.settings.googleApiKey = value;
+		await this.saveSettings();
+	}
+
 	async restoreDefaults(): Promise<void> {
 		this.settings = this.getDefaultSettings();
 		await this.saveSettings();
@@ -73,7 +92,8 @@ export class SettingsServiceImpl implements SettingsService {
 		return {
 			canvasPostfix: '.canvas.md',
 			runOnStart: true,
-			indexFolder: 'index'
+			indexFolder: 'index',
+			googleApiKey: ''
 		};
 	}
 

@@ -3,12 +3,17 @@ export class File {
 		public path: string,
 		public name: string,
 		public modifiedTime: number,
-		private contentResolver: () => Promise<string>
+		private contentResolver: () => Promise<string>,
+		private binaryContentResolver: () => Promise<ArrayBuffer>
 	) {
 	}
 
 	async getContent(): Promise<string> {
 		return this.contentResolver();
+	}
+
+	async getBinaryContent(): Promise<ArrayBuffer> {
+		return this.binaryContentResolver();
 	}
 }
 
