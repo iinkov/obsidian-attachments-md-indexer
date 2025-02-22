@@ -28,3 +28,9 @@ export function readGeneratedTestFile(fileName: string, postfix: string = ''): s
 	// Replace all occurrences of Test.canvas with the new base name
 	return templateContent.replace(/\[\[Test\.canvas\]\]/g, `[[${baseName}.canvas]]`);
 }
+
+export function createTestImageFile(fileDao: any, testFileName: string): Promise<void> {
+	const imageFilePath = testFileName;
+	const imageContent = readTestFile(testFileName);
+	return fileDao.createOrUpdateFile(imageFilePath, imageContent);
+}
