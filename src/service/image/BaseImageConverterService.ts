@@ -1,5 +1,5 @@
 import { BaseConverterService } from '../BaseConverterService';
-import { FileDao } from "../../dao/FileDao";
+import { FileDao, File } from "../../dao/FileDao";
 import { IMAGE_FILE_DESCRIPTION } from "../../utils/constants";
 import { parseImageContent } from '../../utils/imageParser';
 
@@ -15,11 +15,11 @@ export abstract class BaseImageConverterService extends BaseConverterService {
         });
     }
 
-    protected async convertContent(content: string, fileName: string): Promise<string> {
-        const imageContent = await parseImageContent(fileName);
-        return `# ${fileName}
+    protected async convertContent(source: File): Promise<string> {
+        const imageContent = await parseImageContent(source.name);
+        return `# ${source.name}
 
-![[${fileName}|500]]
+![[${source.name}|500]]
 
 ${IMAGE_FILE_DESCRIPTION}
 

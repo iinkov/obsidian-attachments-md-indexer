@@ -1,5 +1,5 @@
 import { convertCanvasToMd } from '../utils/canvasToMd';
-import { FileDao } from "../dao/FileDao";
+import { FileDao, File } from "../dao/FileDao";
 import { CanvasServiceConfig } from "./CanvasServiceConfig";
 import { BaseConverterService } from './BaseConverterService';
 
@@ -16,7 +16,8 @@ export class CanvasService extends BaseConverterService {
 		await this.convertFiles();
 	}
 
-	protected convertContent(content: string, fileName: string): string {
-		return convertCanvasToMd(content, fileName);
+	protected async convertContent(source: File): Promise<string> {
+		const content = await source.getContent();
+		return convertCanvasToMd(content, source.name);
 	}
 }

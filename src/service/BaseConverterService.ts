@@ -35,7 +35,7 @@ export abstract class BaseConverterService {
         }
     }
 
-    protected abstract convertContent(content: string, fileName: string): string;
+    protected abstract convertContent(source: File): Promise<string>;
 
     protected getSourceName(file: File): string {
         return file.name.replace(this.config.targetExtension, this.config.sourceExtension);
@@ -108,8 +108,7 @@ export abstract class BaseConverterService {
     }
 
     protected async convertAndSave(source: File, targetPath: string): Promise<void> {
-        const content = await source.getContent();
-        const convertedContent = this.convertContent(content, source.name);
+        const convertedContent = await this.convertContent(source);
         await this.fileDao.createOrUpdateFile(targetPath, convertedContent);
     }
 
