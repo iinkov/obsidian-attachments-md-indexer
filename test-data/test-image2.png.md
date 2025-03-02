@@ -6,9 +6,16 @@ This index file enables Obsidian and its plugins to manage image files effective
 
 # Image Content
 
-Test content
-Тестовый контент
-Testinhalt
-Contenu de test
-Contenido de prueba
-oooo
+Here's the updated list with English included:
+English: Test content for example
+
+Russian: Тестовый контент для примера
+Ukrainian: Тестовий контент для прикладу
+Polish: Treść testowa па przykład
+
+German: Testinhalt zum Beispiel
+
+French: Contenu de test pour exemple
+Spanish: Contenido de prueba para ejemplo
+Italian: Contenuto di test per esempio
+Portuguese: Conteudo de teste para exemplo

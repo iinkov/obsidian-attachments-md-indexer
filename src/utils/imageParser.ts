@@ -1,22 +1,21 @@
+import { createCanvas, loadImage } from 'canvas';
 import { createWorker } from 'tesseract.js';
 
 export async function parseImageContent(imageBuffer: ArrayBuffer): Promise<string> {
     try {
-        // Create a Tesseract worker
-        const worker = await createWorker();
+        // Create a worker and load multiple languages
+        const worker = await createWorker('eng+rus+pol');
         
-        // Initialize worker with English language
-        await worker.loadLanguage('eng');
-        await worker.initialize('eng');
+        // Convert ArrayBuffer to Buffer
+        const buffer = Buffer.from(imageBuffer);
         
-        // Perform OCR on the image buffer directly
-        const { data: { text } } = await worker.recognize(imageBuffer);
+        // Recognize text with Tesseract
+        const { data: { text } } = await worker.recognize(buffer);
         
-        // Terminate worker to free up resources
+        // Clean up worker resources
         await worker.terminate();
-
-        // Return the extracted text
-        return text.trim() ? text.trim() : 'No text found in image';
+        
+        return text.trim() || 'No text found in image';
     } catch (error) {
         console.error('Error parsing image:', error);
         return 'Failed to parse image content';
