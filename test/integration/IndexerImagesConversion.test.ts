@@ -36,7 +36,7 @@ describe('Integration Test: Image Indexer Conversion', () => {
         expect(convertedContent).toEqual(expectedContent);
     }, { timeout: 30000 });
 
-    it.skip('should handle multiple image files', async () => {
+    it('should handle multiple image files', async () => {
         await createImageFile('test-image.png');
         await createImageFile('test-image2.png');
         await pngConverter.convertFiles();
