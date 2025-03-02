@@ -4,7 +4,7 @@ import {FileDaoImpl} from '../../src/dao/FileDaoImpl';
 import {InMemoryFileAdapter} from '../dao/InMemoryFileAdapter';
 import {createTestImageFile, readTestFile} from '../utils/testFileUtils';
 
-describe.skip('Integration Test: Image Indexer Conversion', () => {
+describe('Integration Test: Image Indexer Conversion', () => {
     let fileAdapter: InMemoryFileAdapter;
     let fileDao: FileDaoImpl;
     let pngConverter: PngConverterService;
@@ -13,14 +13,13 @@ describe.skip('Integration Test: Image Indexer Conversion', () => {
     beforeEach(() => {
         fileAdapter = new InMemoryFileAdapter();
         fileDao = new FileDaoImpl(fileAdapter);
-
         pngConverter = new PngConverterService(fileDao, 'index');
 
         // Clear dao to ensure a clean state
         fileAdapter.clear();
 
-        // Create partially applied function
-        createImageFile = (filename: string) => createTestImageFile(fileDao, filename);
+        // Create partially applied function with adapter instead of fileDao
+        createImageFile = (filename: string) => createTestImageFile(fileAdapter, filename);
     });
 
     it('should create an image file, run the indexer, and verify the .png.md file', async () => {
@@ -35,7 +34,7 @@ describe.skip('Integration Test: Image Indexer Conversion', () => {
         const convertedContent = await fileAdapter.read(expectedMdPath);
         const expectedContent = readTestFile('test-image.png.md');
         expect(convertedContent).toEqual(expectedContent);
-    });
+    }, { timeout: 30000 });
 
     it.skip('should handle multiple image files', async () => {
         await createImageFile('test-image.png');

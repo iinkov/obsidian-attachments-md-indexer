@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { InMemoryFileAdapter } from '../dao/InMemoryFileAdapter';
 
 export function readTestFile(testFileName: string): string {
 	return fs.readFileSync(
@@ -29,8 +30,15 @@ export function readGeneratedTestFile(fileName: string, postfix: string = ''): s
 	return templateContent.replace(/\[\[Test\.canvas\]\]/g, `[[${baseName}.canvas]]`);
 }
 
-export function createTestImageFile(fileDao: any, testFileName: string): Promise<void> {
+export function readTestBinaryFile(testFileName: string): ArrayBuffer {
+	const buffer = fs.readFileSync(
+		path.resolve(__dirname, `../../test-data/${testFileName}`)
+	);
+	return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+}
+
+export function createTestImageFile(adapter: InMemoryFileAdapter, testFileName: string): Promise<void> {
 	const imageFilePath = testFileName;
-	const imageContent = readTestFile(testFileName);
-	return fileDao.createOrUpdateFile(imageFilePath, imageContent);
+	const imageContent = readTestBinaryFile(testFileName);
+	return adapter.createBinaryFile(imageFilePath, imageContent);
 }

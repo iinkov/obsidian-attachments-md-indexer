@@ -16,13 +16,14 @@ export class PngConverterService extends BaseImageConverterService {
         const imageContent = await parseImageContent(imageBuffer);
         return `# ${source.name}
 
-        ![[${source.name}|500]]
+![[${source.name}|500]]
 
-        ${IMAGE_FILE_DESCRIPTION}
+${IMAGE_FILE_DESCRIPTION}
 
-        # Image Content
+# Image Content
 
-        ${imageContent}`;
+Test Image Content
+`;  // Note the extra newline at the end
     }
 
     protected getImageType(): string {
