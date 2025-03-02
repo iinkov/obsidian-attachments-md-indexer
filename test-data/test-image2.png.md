@@ -6,4 +6,9 @@ This index file enables Obsidian and its plugins to manage image files effective
 
 # Image Content
 
-Test Image Content
+Test content
+Тестовый контент
+Testinhalt
+Contenu de test
+Contenido de prueba
+oooo

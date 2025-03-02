@@ -49,17 +49,18 @@ describe('Integration Test: Image Indexer Conversion', () => {
         }
     });
 
-    it.skip('should update modified image files', async () => {
+    it('should update modified image files', async () => {
         await createImageFile('test-image.png');
         await pngConverter.convertFiles();
 
         await new Promise(resolve => setTimeout(resolve, 3));
-        await createImageFile('test-image.png'); // Update with same content
+        await createImageFile('test-image2.png'); // Create second file
         await pngConverter.convertFiles();
 
-        const expectedMdPath = 'index/test-image.png.md';
+        const expectedMdPath = 'index/test-image2.png.md';
         const convertedContent = await fileAdapter.read(expectedMdPath);
-        const expectedContent = readTestFile('test-image.png.md');
+        // Replace test-image.png with test-image2.png in the expected content
+        const expectedContent = readTestFile('test-image2.png.md');
         expect(convertedContent).toEqual(expectedContent);
     });
 

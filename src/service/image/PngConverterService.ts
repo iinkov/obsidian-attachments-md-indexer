@@ -22,7 +22,7 @@ ${IMAGE_FILE_DESCRIPTION}
 
 # Image Content
 
-Test Image Content
+${imageContent}
 `;  // Note the extra newline at the end
     }
 

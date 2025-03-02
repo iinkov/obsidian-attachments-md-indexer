@@ -70,11 +70,7 @@ export class InMemoryFileAdapter implements FileAdapter {
 		this.modificationTimes.set(filePath, Date.now());
 	}
 
-	async createBinaryFile(filePath: string, content: ArrayBuffer): Promise<void> {
-		if (this.binaryStorage.has(filePath)) {
-			throw new Error('File already exists');
-		}
-
+	async createOrUpdateBinaryFile(filePath: string, content: ArrayBuffer): Promise<void> {
 		// Create parent folders if they don't exist
 		const parentPath = filePath.split('/').slice(0, -1).join('/');
 		if (parentPath) {

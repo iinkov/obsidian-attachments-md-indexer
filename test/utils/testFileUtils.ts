@@ -37,8 +37,8 @@ export function readTestBinaryFile(testFileName: string): ArrayBuffer {
 	return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
 }
 
-export function createTestImageFile(adapter: InMemoryFileAdapter, testFileName: string): Promise<void> {
+export function createTestImageFile(adapter: InMemoryFileAdapter, testFileName: string, contentFileName: string = testFileName): Promise<void> {
 	const imageFilePath = testFileName;
-	const imageContent = readTestBinaryFile(testFileName);
-	return adapter.createBinaryFile(imageFilePath, imageContent);
+	const imageContent = readTestBinaryFile(contentFileName);
+	return adapter.createOrUpdateBinaryFile(imageFilePath, imageContent);
 }
