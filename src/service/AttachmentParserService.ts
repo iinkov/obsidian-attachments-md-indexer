@@ -49,11 +49,42 @@ export class GeminiAttachmentParserService implements AttachmentParserService {
             
             return text.trim();
         } catch (error) {
-            console.error('Error parsing content with Gemini:', error);
+            // Create warning message for logs
+            let warningMessage = '';
+            let errorMessage = '## Content Processing Error\n\n';
+            
             if (error instanceof Error) {
-                console.error('Error details:', error.message);
+                // Check specifically for the payload size error
+                if (error.message.includes('Request payload size exceeds the limit')) {
+                    warningMessage = `⚠️ FILE SIZE ERROR: File is too large to process (exceeds 20MB limit)`;
+                    errorMessage += '**Error**: File is too large to process (exceeds 20MB limit)\n\n';
+                    errorMessage += '**Technical Details**: ' + error.message;
+                } else {
+                    warningMessage = `⚠️ PROCESSING ERROR: Failed to process content with Gemini`;
+                    errorMessage += '**Error**: Failed to process content with Gemini\n\n';
+                    errorMessage += '**Technical Details**: ' + error.message;
+                }
+            } else {
+                warningMessage = `⚠️ UNKNOWN ERROR: Error occurred during processing`;
+                errorMessage += '**Error**: Unknown error occurred during processing\n\n';
+                errorMessage += '**Technical Details**: ' + String(error);
             }
-            return 'Failed to parse content with Gemini';
+            
+            // Add file information to the warning message
+            warningMessage += `\nFile Type: ${this.mimeType}`;
+            warningMessage += `\nFile Size: ${(buffer.byteLength / (1024 * 1024)).toFixed(2)}MB`;
+            
+            // Log the warning with clear visibility
+            console.warn('\n' + '='.repeat(80));
+            console.warn(warningMessage);
+            console.warn('='.repeat(80) + '\n');
+            
+            // Add timestamp to the error message for the .md file
+            errorMessage += `\n\n**Timestamp**: ${new Date().toISOString()}`;
+            errorMessage += `\n\n**File Size**: ${(buffer.byteLength / (1024 * 1024)).toFixed(2)}MB`;
+            
+            // Return the formatted error message - this will be stored in the .md file
+            return errorMessage;
         }
     }
 } 

@@ -26,25 +26,25 @@ export default class ObsidianIndexer extends Plugin {
 		const pdfParser = new GeminiAttachmentParserService(
 			settingsService, 
 			'application/pdf',
-			"Extract and summarize the content from this PDF. Include both the main text content and a brief summary."
+			"Extract and summarize the content of this PDF. Provide the complete text and a brief summary. If the PDF contains images, include descriptions of them and the full text they contain."
 		);
 
 		const pngParser = new GeminiAttachmentParserService(
 			settingsService, 
 			'image/png',
-			"Parse text from the image. Return full text and also give me description of the image"
+			"Extract text from the image and provide the full text. Additionally, include a description of the image."
 		);
 
 		const jpgParser = new GeminiAttachmentParserService(
 			settingsService, 
 			'image/jpeg',
-			"Parse text from the image. Return full text and also give me description of the image"
+			"Extract text from the image and provide the full text. Additionally, include a description of the image."
 		);
 
 		const jpegParser = new GeminiAttachmentParserService(
 			settingsService, 
 			'image/jpeg',
-			"Parse text from the image. Return full text and also give me description of the image"
+			"Extract text from the image and provide the full text. Additionally, include a description of the image."
 		);
 
 		// Create converters
