@@ -25,7 +25,7 @@ describe('Integration Test: Image Indexer Conversion', () => {
 
         fileAdapter = new InMemoryFileAdapter();
         fileDao = new FileDaoImpl(fileAdapter);
-        const imageParser = new GeminiImageParserService({getApiKey: () => apiKey});
+        const imageParser = new GeminiImageParserService({getApiKey: () => apiKey}, 'image/png');
         pngConverter = new PngConverterService(fileDao, 'index', imageParser);
 
         // Clear dao to ensure a clean state
