@@ -5,7 +5,7 @@ export interface AttachmentParserConfig {
 }
 
 export interface AttachmentParserService {
-    parseAttachmentContent(buffer: ArrayBuffer): Promise<string>;
+    parseAttachmentContent(buffer: ArrayBuffer, filePath: string): Promise<string>;
     validateApiKey(): boolean;
 }
 
@@ -23,7 +23,7 @@ export class GeminiAttachmentParserService implements AttachmentParserService {
         return !!apiKey;
     }
 
-    async parseAttachmentContent(buffer: ArrayBuffer): Promise<string> {
+    async parseAttachmentContent(buffer: ArrayBuffer, filePath: string): Promise<string> {
         try {
             // Initialize the Gemini API with your API key
             const genAI = new GoogleGenerativeAI(this.config.getApiKey());
@@ -49,42 +49,21 @@ export class GeminiAttachmentParserService implements AttachmentParserService {
             
             return text.trim();
         } catch (error) {
-            // Create warning message for logs
-            let warningMessage = '';
-            let errorMessage = '## Content Processing Error\n\n';
+            const fileSizeInMB = (buffer.byteLength / (1024 * 1024)).toFixed(2);
             
-            if (error instanceof Error) {
-                // Check specifically for the payload size error
-                if (error.message.includes('Request payload size exceeds the limit')) {
-                    warningMessage = `⚠️ FILE SIZE ERROR: File is too large to process (exceeds 20MB limit)`;
-                    errorMessage += '**Error**: File is too large to process (exceeds 20MB limit)\n\n';
-                    errorMessage += '**Technical Details**: ' + error.message;
-                } else {
-                    warningMessage = `⚠️ PROCESSING ERROR: Failed to process content with Gemini`;
-                    errorMessage += '**Error**: Failed to process content with Gemini\n\n';
-                    errorMessage += '**Technical Details**: ' + error.message;
-                }
-            } else {
-                warningMessage = `⚠️ UNKNOWN ERROR: Error occurred during processing`;
-                errorMessage += '**Error**: Unknown error occurred during processing\n\n';
-                errorMessage += '**Technical Details**: ' + String(error);
-            }
+            // Console warning
+            console.warn(`⚠️ Processing Error\nFile: ${filePath}\nSize: ${fileSizeInMB}MB`);
             
-            // Add file information to the warning message
-            warningMessage += `\nFile Type: ${this.mimeType}`;
-            warningMessage += `\nFile Size: ${(buffer.byteLength / (1024 * 1024)).toFixed(2)}MB`;
-            
-            // Log the warning with clear visibility
-            console.warn('\n' + '='.repeat(80));
-            console.warn(warningMessage);
-            console.warn('='.repeat(80) + '\n');
-            
-            // Add timestamp to the error message for the .md file
-            errorMessage += `\n\n**Timestamp**: ${new Date().toISOString()}`;
-            errorMessage += `\n\n**File Size**: ${(buffer.byteLength / (1024 * 1024)).toFixed(2)}MB`;
-            
-            // Return the formatted error message - this will be stored in the .md file
-            return errorMessage;
+            // Markdown content
+            return `## Processing Error
+
+This file could not be processed by Gemini AI.
+
+**Details:**
+- File size: ${fileSizeInMB}MB
+- File type: ${this.mimeType}
+- Error: ${error instanceof Error ? error.message : String(error)}
+`;
         }
     }
 } 
