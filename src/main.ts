@@ -1,4 +1,4 @@
-import {Plugin} from 'obsidian';
+import {Plugin, Notice} from 'obsidian';
 import {CanvasService} from './service/CanvasService';
 import {FileDaoImpl} from './dao/FileDaoImpl';
 import {ObsidianFileAdapter} from './dao/ObsidianFileAdapter';
@@ -10,6 +10,7 @@ import {JpgConverterService} from './service/JpgConverterService';
 import { JpegConverterService } from './service/JpegConverterService';
 import { GeminiAttachmentParserService } from './service/AttachmentParserService';
 import { PdfConverterService } from './service/PdfConverterService';
+import { FatalProcessingError } from './service/AttachmentParserService';
 
 export default class ObsidianIndexer extends Plugin {
 	override async onload() {
@@ -53,6 +54,31 @@ export default class ObsidianIndexer extends Plugin {
 		const jpgConverter = new JpgConverterService(fileDao, settingsService.indexFolder, jpgParser);
 		const jpegConverter = new JpegConverterService(fileDao, settingsService.indexFolder, jpegParser);
 
+		// Initialize converters and other services
+		const runConversion = async () => {
+			try {
+				// Run converters sequentially
+				await canvasService.convertFiles();
+				await pdfConverter.convertFiles();
+				await pngConverter.convertFiles();
+				await jpgConverter.convertFiles();
+				await jpegConverter.convertFiles();
+				
+				// Show success notification
+				new Notice('All attachments have been processed successfully');
+			} catch (error) {
+				if (error instanceof FatalProcessingError) {
+					// Show error notification
+					new Notice('Processing stopped due to Gemini API errors. Please try again later.');
+					console.error('Conversion process stopped:', error.message);
+				} else {
+					// Handle other errors
+					new Notice('An error occurred during processing');
+					console.error('Conversion error:', error);
+				}
+			}
+		};
+
 		// Add settings tab
 		this.addSettingTab(new SettingsTab(this.app, this, settingsService));
 
@@ -61,22 +87,14 @@ export default class ObsidianIndexer extends Plugin {
 			id: 'convert-canvas-files',
 			name: 'Convert attachment files to Markdown',
 			callback: async () => {
-				await canvasService.convertFiles();
-				await pdfConverter.convertFiles();
-				await pngConverter.convertFiles();
-				await jpgConverter.convertFiles();
-				await jpegConverter.convertFiles();
+				await runConversion();
 			},
 		});
 
 		// Schedule a second conversion after 2-second delay if runOnStart is enabled
 		if (settingsService.runOnStart) {
 			window.setTimeout(async () => {
-				await canvasService.convertFiles();
-				await pdfConverter.convertFiles();
-				await pngConverter.convertFiles();
-				await jpgConverter.convertFiles();
-				await jpegConverter.convertFiles();
+				await runConversion();
 			}, 2000);
 		}
 	}

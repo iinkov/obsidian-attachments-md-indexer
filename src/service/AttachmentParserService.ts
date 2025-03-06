@@ -9,6 +9,13 @@ export interface AttachmentParserService {
     validateApiKey(): boolean;
 }
 
+export class FatalProcessingError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'FatalProcessingError';
+    }
+}
+
 export class GeminiAttachmentParserService implements AttachmentParserService {
     constructor(
         private config: AttachmentParserConfig,
@@ -64,8 +71,8 @@ Please check the plugin documentation for troubleshooting steps.`;
                 return this.tryGenerateContent(buffer, filePath, retryCount + 1);
             }
 
-            // If all retries failed, throw error to stop the process
-            throw new Error(`Failed to process file after 3 retries: ${filePath}`);
+            // If all retries failed, throw a FatalProcessingError to stop the process
+            throw new FatalProcessingError(`Failed to process file after 3 retries: ${filePath}`);
         }
     }
 

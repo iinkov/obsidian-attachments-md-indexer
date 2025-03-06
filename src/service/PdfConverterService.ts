@@ -36,12 +36,7 @@ ${content}
             console.warn('No Google API key configured - PDF parsing will be skipped');
             return;
         }
-        try {
-            await super.convertFiles();
-        } catch (error) {
-            console.error('Conversion process stopped due to API errors. Please try again later.');
-            // Re-throw to stop the entire process
-            throw error;
-        }
+        await super.convertFiles();
+
     }
 } 
