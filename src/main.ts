@@ -8,6 +8,7 @@ import {SettingsTab} from './utils/SettingsTab';
 import {PngConverterService} from './service/PngConverterService';
 import {JpgConverterService} from './service/JpgConverterService';
 import { GeminiImageParserService } from './service/ImageParserService';
+import { JpegConverterService } from './service/JpegConverterService';
 
 export default class ObsidianIndexer extends Plugin {
 	override async onload() {
@@ -23,9 +24,11 @@ export default class ObsidianIndexer extends Plugin {
 		// Create separate image parser instances for different file types
 		const pngParser = new GeminiImageParserService(settingsService, 'image/png');
 		const jpgParser = new GeminiImageParserService(settingsService, 'image/jpeg');
+		const jpegParser = new GeminiImageParserService(settingsService, 'image/jpeg');
 
 		const pngConverter = new PngConverterService(fileDao, settingsService.indexFolder, pngParser);
 		const jpgConverter = new JpgConverterService(fileDao, settingsService.indexFolder, jpgParser);
+		const jpegConverter = new JpegConverterService(fileDao, settingsService.indexFolder, jpegParser);
 
 		// Add settings tab
 		this.addSettingTab(new SettingsTab(this.app, this, settingsService));
@@ -38,6 +41,7 @@ export default class ObsidianIndexer extends Plugin {
 				await canvasService.convertFiles();
 				await pngConverter.convertFiles();
 				await jpgConverter.convertFiles();
+				await jpegConverter.convertFiles();
 			},
 		});
 
@@ -47,6 +51,7 @@ export default class ObsidianIndexer extends Plugin {
 				await canvasService.convertFiles();
 				await pngConverter.convertFiles();
 				await jpgConverter.convertFiles();
+				await jpegConverter.convertFiles();
 			}, 2000);
 		}
 	}
