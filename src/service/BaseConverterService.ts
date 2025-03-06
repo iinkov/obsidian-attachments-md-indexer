@@ -1,4 +1,5 @@
 import { File, FileDao } from "../dao/FileDao";
+import { FatalProcessingError } from './AttachmentParserService';
 
 export interface ConversionConfig {
     indexFolder: string;
@@ -32,6 +33,10 @@ export abstract class BaseConverterService {
             this.logConversionResults(removedFiles, createdFiles, modifiedFiles, sourceFiles.length);
         } catch (error) {
             console.error('Error during conversion:', error);
+            
+            if (error instanceof FatalProcessingError) {
+                throw error;
+            }
         }
     }
 
@@ -71,9 +76,16 @@ export abstract class BaseConverterService {
 
         const processedNames = [];
         for (const source of sourceFiles.filter(source => !convertedNames.has(source.name))) {
-            const targetPath = this.getConvertedFilePath(source.name);
-            await this.convertAndSave(source, targetPath);
-            processedNames.push(source.name);
+            try {
+                const targetPath = this.getConvertedFilePath(source.name);
+                await this.convertAndSave(source, targetPath);
+                processedNames.push(source.name);
+            } catch (error) {
+                if (error instanceof FatalProcessingError) {
+                    throw error;
+                }
+                console.error(`Error processing file ${source.name}:`, error);
+            }
         }
         return { count: processedNames.length, files: processedNames };
     }
@@ -93,9 +105,16 @@ export abstract class BaseConverterService {
         for (const source of sourceFiles) {
             const convertedFile = convertedFileMap.get(source.name);
             if (convertedFile && source.modifiedTime >= convertedFile.modifiedTime) {
-                const targetPath = this.getConvertedFilePath(source.name);
-                await this.convertAndSave(source, targetPath);
-                modifiedFileNames.push(source.name);
+                try {
+                    const targetPath = this.getConvertedFilePath(source.name);
+                    await this.convertAndSave(source, targetPath);
+                    modifiedFileNames.push(source.name);
+                } catch (error) {
+                    if (error instanceof FatalProcessingError) {
+                        throw error;
+                    }
+                    console.error(`Error processing file ${source.name}:`, error);
+                }
             }
         }
 
