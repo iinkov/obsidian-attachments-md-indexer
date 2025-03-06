@@ -10,7 +10,10 @@ export interface ImageParserService {
 }
 
 export class GeminiImageParserService implements ImageParserService {
-    constructor(private config: ImageParserConfig) {
+    constructor(
+        private config: ImageParserConfig,
+        private readonly mimeType: string
+    ) {
         this.validateApiKey();
     }
 
@@ -34,7 +37,7 @@ export class GeminiImageParserService implements ImageParserService {
             const imagePart = {
                 inlineData: {
                     data: base64Image,
-                    mimeType: "image/png"
+                    mimeType: this.mimeType
                 }
             };
 

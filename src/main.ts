@@ -6,6 +6,7 @@ import {FileAdapter} from './dao/FileAdapter';
 import {SettingsServiceImpl} from "./service/SettingsService";
 import {SettingsTab} from './utils/SettingsTab';
 import {PngConverterService} from './service/PngConverterService';
+import {JpgConverterService} from './service/JpgConverterService';
 import { GeminiImageParserService } from './service/ImageParserService';
 
 export default class ObsidianIndexer extends Plugin {
@@ -19,9 +20,12 @@ export default class ObsidianIndexer extends Plugin {
 		const fileDao = new FileDaoImpl(fileAdapter);
 		const canvasService = new CanvasService(fileDao, settingsService);
 		
-		// Create a function to get a fresh image parser instance with current API key
-		const getImageParser = new GeminiImageParserService(settingsService);
-		const imageConverter = new PngConverterService(fileDao, settingsService.indexFolder, getImageParser);
+		// Create separate image parser instances for different file types
+		const pngParser = new GeminiImageParserService(settingsService, 'image/png');
+		const jpgParser = new GeminiImageParserService(settingsService, 'image/jpeg');
+
+		const pngConverter = new PngConverterService(fileDao, settingsService.indexFolder, pngParser);
+		const jpgConverter = new JpgConverterService(fileDao, settingsService.indexFolder, jpgParser);
 
 		// Add settings tab
 		this.addSettingTab(new SettingsTab(this.app, this, settingsService));
@@ -32,7 +36,8 @@ export default class ObsidianIndexer extends Plugin {
 			name: 'Convert attachment files to Markdown',
 			callback: async () => {
 				await canvasService.convertFiles();
-				await imageConverter.convertFiles();
+				await pngConverter.convertFiles();
+				await jpgConverter.convertFiles();
 			},
 		});
 
@@ -40,7 +45,8 @@ export default class ObsidianIndexer extends Plugin {
 		if (settingsService.runOnStart) {
 			window.setTimeout(async () => {
 				await canvasService.convertFiles();
-				await imageConverter.convertFiles();
+				await pngConverter.convertFiles();
+				await jpgConverter.convertFiles();
 			}, 2000);
 		}
 	}
