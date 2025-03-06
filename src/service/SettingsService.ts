@@ -3,20 +3,17 @@ import {CanvasServiceConfig} from "../service/CanvasServiceConfig";
 import { ImageParserConfig } from './ImageParserService';
 
 export interface Settings {
-	canvasPostfix: string;
 	runOnStart: boolean;
 	indexFolder: string;
 	googleApiKey: string;
 }
 
 export interface SettingsService extends CanvasServiceConfig {
-	readonly canvasPostfix: string;
 	readonly runOnStart: boolean;
 	readonly indexFolder: string;
 	readonly googleApiKey: string;
+	readonly canvasPostfix: string;
 	getApiKey(): string;
-
-	updateCanvasPostfix(value: string): Promise<void>;
 
 	updateRunOnStart(value: boolean): Promise<void>;
 
@@ -37,7 +34,7 @@ export class SettingsServiceImpl implements SettingsService, ImageParserConfig {
 	}
 
 	get canvasPostfix(): string {
-		return this.settings.canvasPostfix;
+		return '.canvas.md';
 	}
 
 	get runOnStart(): boolean {
@@ -63,11 +60,6 @@ export class SettingsServiceImpl implements SettingsService, ImageParserConfig {
 		);
 	}
 
-	async updateCanvasPostfix(value: string): Promise<void> {
-		this.settings.canvasPostfix = value;
-		await this.saveSettings();
-	}
-
 	async updateRunOnStart(value: boolean): Promise<void> {
 		this.settings.runOnStart = value;
 		await this.saveSettings();
@@ -90,7 +82,6 @@ export class SettingsServiceImpl implements SettingsService, ImageParserConfig {
 
 	private getDefaultSettings(): Settings {
 		return {
-			canvasPostfix: '.canvas.md',
 			runOnStart: true,
 			indexFolder: 'index',
 			googleApiKey: ''

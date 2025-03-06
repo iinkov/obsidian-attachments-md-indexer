@@ -15,19 +15,6 @@ export class SettingsTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Canvas postfix')
-			.setDesc('File extension for converted Canvas files (must end with ".md" and be at least 5 chars long). Example: ".canvas.md".  If you change this, you need to manually delete old converted files and re-run the conversion.')
-			.addText(text => text
-				.setPlaceholder('.canvas.md')
-				.setValue(this.settingsService.canvasPostfix)
-				.onChange(async (value) => {
-					if (!value.endsWith('.md') || value.length < 5) {
-						value = '.canvas.md';
-					}
-					await this.settingsService.updateCanvasPostfix(value);
-				}));
-
-		new Setting(containerEl)
 			.setName('Run on start')
 			.setDesc('Automatically convert Canvas files when plugin loads')
 			.addToggle(toggle => toggle
