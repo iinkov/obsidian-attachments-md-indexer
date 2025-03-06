@@ -1,13 +1,13 @@
 import { BaseConverterService } from './BaseConverterService';
 import { FileDao, File } from "../dao/FileDao";
 import { IMAGE_FILE_DESCRIPTION } from "../utils/constants";
-import { ImageParserService } from './ImageParserService';
+import { AttachmentParserService } from './AttachmentParserService';
 
 export class PngConverterService extends BaseConverterService {
     constructor(
         fileDao: FileDao, 
         indexFolder: string,
-        private imageParser: ImageParserService
+        private parser: AttachmentParserService
     ) {
         super(fileDao, {
             indexFolder,
@@ -17,8 +17,8 @@ export class PngConverterService extends BaseConverterService {
     }
 
     protected async convertContent(source: File): Promise<string> {
-        const imageBuffer = await source.getBinaryContent();
-        const imageContent = await this.imageParser.parseImageContent(imageBuffer);
+        const buffer = await source.getBinaryContent();
+        const content = await this.parser.parseAttachmentContent(buffer);
         return `# ${source.name}
 
 ![[${source.name}|500]]
@@ -27,12 +27,12 @@ ${IMAGE_FILE_DESCRIPTION}
 
 # Image Content
 
-${imageContent}
-`;  // Note the extra newline at the end
+${content}
+`;
     }
 
     override async convertFiles(): Promise<void> {
-        if (!this.imageParser.validateApiKey()) {
+        if (!this.parser.validateApiKey()) {
             console.warn('No Google API key configured - image parsing will be skipped');
             return;
         }
