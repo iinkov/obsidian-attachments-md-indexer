@@ -1,6 +1,10 @@
 import {File, FileDao} from "./FileDao";
 import {FileAdapter} from "./FileAdapter";
-import {INDEX_FILE_DESCRIPTION, IMAGE_FILE_DESCRIPTION} from "../utils/constants";
+import {
+	INDEX_FILE_DESCRIPTION, 
+	IMAGE_FILE_DESCRIPTION,
+	PDF_FILE_DESCRIPTION
+} from "../utils/constants";
 
 export class FileDaoImpl implements FileDao {
 	constructor(private fileAdapter: FileAdapter) {
@@ -15,9 +19,12 @@ export class FileDaoImpl implements FileDao {
 	}
 
 	async deleteFile(path: string): Promise<void> {
-		// Verify file contains INDEX_FILE_TEMPLATE before deletion
+		// Verify file contains one of the valid description markers before deletion
 		const content = await this.readFile(path);
-		if (content && !content.includes(INDEX_FILE_DESCRIPTION) && !content.includes(IMAGE_FILE_DESCRIPTION)) {
+		if (content && 
+			!content.includes(INDEX_FILE_DESCRIPTION) && 
+			!content.includes(IMAGE_FILE_DESCRIPTION) &&
+			!content.includes(PDF_FILE_DESCRIPTION)) {
 			throw new Error(`Cannot delete file at ${path} - it does not appear to be an index file`);
 		}
 		await this.fileAdapter.delete(path);

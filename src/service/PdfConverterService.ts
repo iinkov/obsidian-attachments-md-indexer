@@ -1,5 +1,6 @@
 import { BaseConverterService } from './BaseConverterService';
 import { FileDao, File } from "../dao/FileDao";
+import { PDF_FILE_DESCRIPTION } from "../utils/constants";
 import { AttachmentParserService } from './AttachmentParserService';
 
 export class PdfConverterService extends BaseConverterService {
@@ -20,7 +21,9 @@ export class PdfConverterService extends BaseConverterService {
         const content = await this.parser.parseAttachmentContent(buffer);
         return `# ${source.name}
 
-![[${source.name}]]
+![[${source.name}#height=500]]
+
+${PDF_FILE_DESCRIPTION}
 
 # PDF Content
 
