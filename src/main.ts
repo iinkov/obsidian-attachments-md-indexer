@@ -7,8 +7,9 @@ import {SettingsServiceImpl} from "./service/SettingsService";
 import {SettingsTab} from './utils/SettingsTab';
 import {PngConverterService} from './service/PngConverterService';
 import {JpgConverterService} from './service/JpgConverterService';
-import { GeminiImageParserService } from './service/ImageParserService';
 import { JpegConverterService } from './service/JpegConverterService';
+import { GeminiAttachmentParserService } from './service/AttachmentParserService';
+import { PdfConverterService } from './service/PdfConverterService';
 
 export default class ObsidianIndexer extends Plugin {
 	override async onload() {
@@ -21,11 +22,33 @@ export default class ObsidianIndexer extends Plugin {
 		const fileDao = new FileDaoImpl(fileAdapter);
 		const canvasService = new CanvasService(fileDao, settingsService);
 		
-		// Create separate image parser instances for different file types
-		const pngParser = new GeminiImageParserService(settingsService, 'image/png');
-		const jpgParser = new GeminiImageParserService(settingsService, 'image/jpeg');
-		const jpegParser = new GeminiImageParserService(settingsService, 'image/jpeg');
+		// Create parser instances with specific prompts for each type
+		const pdfParser = new GeminiAttachmentParserService(
+			settingsService, 
+			'application/pdf',
+			"Extract and summarize the content from this PDF. Include both the main text content and a brief summary."
+		);
 
+		const pngParser = new GeminiAttachmentParserService(
+			settingsService, 
+			'image/png',
+			"Parse text from the image. Return full text and also give me description of the image"
+		);
+
+		const jpgParser = new GeminiAttachmentParserService(
+			settingsService, 
+			'image/jpeg',
+			"Parse text from the image. Return full text and also give me description of the image"
+		);
+
+		const jpegParser = new GeminiAttachmentParserService(
+			settingsService, 
+			'image/jpeg',
+			"Parse text from the image. Return full text and also give me description of the image"
+		);
+
+		// Create converters
+		const pdfConverter = new PdfConverterService(fileDao, settingsService.indexFolder, pdfParser);
 		const pngConverter = new PngConverterService(fileDao, settingsService.indexFolder, pngParser);
 		const jpgConverter = new JpgConverterService(fileDao, settingsService.indexFolder, jpgParser);
 		const jpegConverter = new JpegConverterService(fileDao, settingsService.indexFolder, jpegParser);
@@ -39,6 +62,7 @@ export default class ObsidianIndexer extends Plugin {
 			name: 'Convert attachment files to Markdown',
 			callback: async () => {
 				await canvasService.convertFiles();
+				await pdfConverter.convertFiles();
 				await pngConverter.convertFiles();
 				await jpgConverter.convertFiles();
 				await jpegConverter.convertFiles();
@@ -49,6 +73,7 @@ export default class ObsidianIndexer extends Plugin {
 		if (settingsService.runOnStart) {
 			window.setTimeout(async () => {
 				await canvasService.convertFiles();
+				await pdfConverter.convertFiles();
 				await pngConverter.convertFiles();
 				await jpgConverter.convertFiles();
 				await jpegConverter.convertFiles();
