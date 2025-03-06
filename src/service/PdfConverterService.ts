@@ -1,9 +1,8 @@
 import { BaseConverterService } from './BaseConverterService';
 import { FileDao, File } from "../dao/FileDao";
-import { IMAGE_FILE_DESCRIPTION } from "../utils/constants";
 import { AttachmentParserService } from './AttachmentParserService';
 
-export class JpgConverterService extends BaseConverterService {
+export class PdfConverterService extends BaseConverterService {
     constructor(
         fileDao: FileDao, 
         indexFolder: string,
@@ -11,8 +10,8 @@ export class JpgConverterService extends BaseConverterService {
     ) {
         super(fileDao, {
             indexFolder,
-            sourceExtension: '.jpg',
-            targetExtension: '.jpg.md'
+            sourceExtension: '.pdf',
+            targetExtension: '.pdf.md'
         });
     }
 
@@ -21,11 +20,9 @@ export class JpgConverterService extends BaseConverterService {
         const content = await this.parser.parseAttachmentContent(buffer);
         return `# ${source.name}
 
-![[${source.name}|500]]
+![[${source.name}]]
 
-${IMAGE_FILE_DESCRIPTION}
-
-# Image Content
+# PDF Content
 
 ${content}
 `;
@@ -33,7 +30,7 @@ ${content}
 
     override async convertFiles(): Promise<void> {
         if (!this.parser.validateApiKey()) {
-            console.warn('No Google API key configured - image parsing will be skipped');
+            console.warn('No Google API key configured - PDF parsing will be skipped');
             return;
         }
         await super.convertFiles();

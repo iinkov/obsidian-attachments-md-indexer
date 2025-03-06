@@ -4,7 +4,7 @@ import {FileDaoImpl} from '../../src/dao/FileDaoImpl';
 import {InMemoryFileAdapter} from '../dao/InMemoryFileAdapter';
 import {createTestImageFile} from '../utils/testFileUtils';
 import { IMAGE_FILE_DESCRIPTION } from '../../src/utils/constants';
-import { GeminiImageParserService } from '../../src/service/ImageParserService';
+import { GeminiAttachmentParserService } from '../../src/service/AttachmentParserService';
 import { config } from 'dotenv';
 
 // Load environment variables from .env file
@@ -25,7 +25,11 @@ describe('Integration Test: Image Indexer Conversion', () => {
 
         fileAdapter = new InMemoryFileAdapter();
         fileDao = new FileDaoImpl(fileAdapter);
-        const imageParser = new GeminiImageParserService({getApiKey: () => apiKey}, 'image/png');
+        const imageParser = new GeminiAttachmentParserService(
+            {getApiKey: () => apiKey}, 
+            'image/png',
+            "Parse text from the image. Return full text and also give me description of the image"
+        );
         pngConverter = new PngConverterService(fileDao, 'index', imageParser);
 
         // Clear dao to ensure a clean state

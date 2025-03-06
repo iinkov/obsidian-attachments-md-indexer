@@ -1,6 +1,6 @@
 import {Plugin} from 'obsidian';
 import {CanvasServiceConfig} from "../service/CanvasServiceConfig";
-import { ImageParserConfig } from './ImageParserService';
+import { AttachmentParserConfig } from './AttachmentParserService';
 
 export interface Settings {
 	runOnStart: boolean;
@@ -24,7 +24,7 @@ export interface SettingsService extends CanvasServiceConfig {
 	restoreDefaults(): Promise<void>;
 }
 
-export class SettingsServiceImpl implements SettingsService, ImageParserConfig {
+export class SettingsServiceImpl implements SettingsService, AttachmentParserConfig {
 	private settings: Settings;
 	private plugin: Plugin;
 
