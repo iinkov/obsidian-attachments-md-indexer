@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Notice } from 'obsidian';
 
 export interface AttachmentParserConfig {
     getApiKey: () => string;
@@ -30,12 +31,19 @@ export class GeminiAttachmentParserService implements AttachmentParserService {
         return !!apiKey;
     }
 
+    private arrayBufferToBase64(buffer: ArrayBuffer): string {
+        const uint8Array = new Uint8Array(buffer);
+        let binary = '';
+        uint8Array.forEach(byte => binary += String.fromCharCode(byte));
+        return btoa(binary);
+    }
+
     private async tryGenerateContent(buffer: ArrayBuffer, filePath: string, retryCount = 0): Promise<string> {
         try {
             const genAI = new GoogleGenerativeAI(this.config.getApiKey());
             const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
             
-            const base64Data = Buffer.from(buffer).toString('base64');
+            const base64Data = this.arrayBufferToBase64(buffer);
             const dataPart = {
                 inlineData: {
                     data: base64Data,
@@ -68,6 +76,8 @@ Please check the plugin documentation for troubleshooting steps.`;
             if (retryCount < 3) {
                 console.warn(`Retry attempt ${retryCount + 1} for ${filePath}`);
                 await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
+                // Show error notification for retry failure
+                new Notice(`${error.message}`);
                 return this.tryGenerateContent(buffer, filePath, retryCount + 1);
             }
 
