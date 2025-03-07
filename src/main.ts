@@ -13,6 +13,8 @@ import { PdfConverterService } from './service/PdfConverterService';
 import { FatalProcessingError } from './service/AttachmentParserService';
 
 export default class ObsidianIndexer extends Plugin {
+	private isConverting = false;
+
 	override async onload() {
 		// Initialize settings manager and load settings
 		const settingsService = new SettingsServiceImpl(this);
@@ -56,6 +58,12 @@ export default class ObsidianIndexer extends Plugin {
 
 		// Initialize converters and other services
 		const runConversion = async () => {
+			if (this.isConverting) {
+				new Notice('Conversion is already in progress. Please wait.');
+				return;
+			}
+
+			this.isConverting = true;
 			try {
 				// Run converters sequentially
 				await canvasService.convertFiles();
@@ -76,6 +84,8 @@ export default class ObsidianIndexer extends Plugin {
 					new Notice('An error occurred during processing');
 					console.error('Conversion error:', error);
 				}
+			} finally {
+				this.isConverting = false;
 			}
 		};
 
