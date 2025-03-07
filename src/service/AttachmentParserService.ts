@@ -76,8 +76,6 @@ Please check the plugin documentation for troubleshooting steps.`;
             if (retryCount < 3) {
                 console.warn(`Retry attempt ${retryCount + 1} for ${filePath}`);
                 await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
-                // Show error notification for retry failure
-                new Notice(`${error.message}`);
                 return this.tryGenerateContent(buffer, filePath, retryCount + 1);
             }
 
