@@ -39,12 +39,14 @@ export class SettingsTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('Google API Key')
 			.setDesc('API key for Google Gemini Vision API to extract text from images')
-			.addText(text => text
-				.setPlaceholder('Enter your Google API key')
-				.setValue(this.settingsService.googleApiKey)
-				.onChange(async (value) => {
-					await this.settingsService.updateGoogleApiKey(value);
-				}));
+			.addText(text => {
+				text.inputEl.type = 'password';
+				text.setPlaceholder('Enter your Google API key')
+					.setValue(this.settingsService.googleApiKey)
+					.onChange(async (value) => {
+						await this.settingsService.updateGoogleApiKey(value);
+					});
+			});
 
 		// Add Restore Defaults button
 		new Setting(containerEl)
