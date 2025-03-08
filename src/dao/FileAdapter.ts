@@ -1,9 +1,16 @@
 import {File} from './FileDao';
 
+export interface AdapterFile {
+	path: string;
+	name: string;
+	modifiedTime: number;
+	sizeInBytes: number;
+}
+
 export interface FileAdapter {
 	createFolder(folderPath: string): Promise<void>;
 
-	getFiles(): Promise<File[]>;
+	getFiles(): Promise<AdapterFile[]>;
 
 	read(filePath: string): Promise<string>;
 

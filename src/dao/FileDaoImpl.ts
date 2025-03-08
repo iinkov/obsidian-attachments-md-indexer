@@ -52,6 +52,7 @@ export class FileDaoImpl implements FileDao {
 				file.path,
 				file.name,
 				file.modifiedTime,
+				file.sizeInBytes,
 				async () => {
 					const content = await this.fileAdapter.read(file.path);
 					if (content === undefined) {
