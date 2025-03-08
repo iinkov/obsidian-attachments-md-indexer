@@ -17,8 +17,7 @@ export class JpgConverterService extends BaseConverterService {
     }
 
     protected async convertContent(source: File): Promise<string> {
-        const buffer = await source.getBinaryContent();
-        const content = await this.parser.parseAttachmentContent(source.sizeInMB, buffer, source.path);
+        const content = await this.parser.parseAttachmentContent(source.sizeInMB, () => source.getBinaryContent(), source.path);
         return `# ${source.name}
 
 ![[${source.name}|500]]
