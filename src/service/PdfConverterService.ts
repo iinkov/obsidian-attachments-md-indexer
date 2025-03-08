@@ -18,7 +18,7 @@ export class PdfConverterService extends BaseConverterService {
 
     protected async convertContent(source: File): Promise<string> {
         const buffer = await source.getBinaryContent();
-        const content = await this.parser.parseAttachmentContent(buffer, source.path);
+        const content = await this.parser.parseAttachmentContent(source.sizeInMB, buffer, source.path);
         return `# ${source.name}
 
 ![[${source.name}#height=500]]

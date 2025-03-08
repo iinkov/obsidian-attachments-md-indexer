@@ -6,7 +6,7 @@ export interface AttachmentParserConfig {
 }
 
 export interface AttachmentParserService {
-    parseAttachmentContent(buffer: ArrayBuffer, filePath: string): Promise<string>;
+    parseAttachmentContent(fileSizeMB: number, buffer: ArrayBuffer, filePath: string): Promise<string>;
     validateApiKey(): boolean;
 }
 
@@ -38,7 +38,32 @@ export class GeminiAttachmentParserService implements AttachmentParserService {
         return btoa(binary);
     }
 
-    private async tryGenerateContent(buffer: ArrayBuffer, filePath: string, retryCount = 0): Promise<string> {
+    private readonly MAX_FILE_SIZE_MB = 30;
+
+    private validateFileSize(fileSizeMB: number, filePath: string): string | null {
+        if (fileSizeMB > this.MAX_FILE_SIZE_MB) {
+            const message = `## File Too Large
+
+This file exceeds the maximum size limit for Gemini AI processing.
+
+**Details:**
+- File size: ${fileSizeMB.toFixed(2)}MB
+- Maximum allowed: ${this.MAX_FILE_SIZE_MB}MB
+- File: ${filePath}
+
+The file cannot be processed due to Gemini API limitations.`;
+            return message;
+        }
+        return null;
+    }
+
+    private async tryGenerateContent(buffer: ArrayBuffer, filePath: string, retryCount = 0, fileSizeMB: number): Promise<string> {
+        // Check file size first
+        const sizeError = this.validateFileSize(fileSizeMB, filePath);
+        if (sizeError) {
+            return sizeError;
+        }
+
         try {
             const genAI = new GoogleGenerativeAI(this.config.getApiKey());
             const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
@@ -76,7 +101,7 @@ Please check the plugin documentation for troubleshooting steps.`;
             if (retryCount < 3) {
                 console.warn(`Retry attempt ${retryCount + 1} for ${filePath}`);
                 await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
-                return this.tryGenerateContent(buffer, filePath, retryCount + 1);
+                return this.tryGenerateContent(buffer, filePath, retryCount + 1, fileSizeMB);
             }
 
             // If all retries failed, throw a FatalProcessingError to stop the process
@@ -84,7 +109,7 @@ Please check the plugin documentation for troubleshooting steps.`;
         }
     }
 
-    async parseAttachmentContent(buffer: ArrayBuffer, filePath: string): Promise<string> {
-        return this.tryGenerateContent(buffer, filePath);
+    async parseAttachmentContent(fileSizeMB: number, buffer: ArrayBuffer, filePath: string): Promise<string> {
+        return this.tryGenerateContent(buffer, filePath, 0, fileSizeMB);
     }
 } 
