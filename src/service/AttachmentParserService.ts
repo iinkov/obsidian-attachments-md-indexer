@@ -38,7 +38,7 @@ export class GeminiAttachmentParserService implements AttachmentParserService {
         return btoa(binary);
     }
 
-    private readonly MAX_FILE_SIZE_MB = 30;
+    private readonly MAX_FILE_SIZE_MB = 22;
 
     private validateFileSize(fileSizeMB: number, filePath: string): string | null {
         if (fileSizeMB > this.MAX_FILE_SIZE_MB) {
