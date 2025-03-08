@@ -67,7 +67,7 @@ The file cannot be processed due to Gemini API limitations.`;
         try {
             const buffer = await getBuffer();
             const genAI = new GoogleGenerativeAI(this.config.getApiKey());
-            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
             
             const base64Data = this.arrayBufferToBase64(buffer);
             const dataPart = {
