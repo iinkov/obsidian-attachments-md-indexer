@@ -1,4 +1,4 @@
-import {App, Plugin, PluginSettingTab, Setting} from 'obsidian';
+import {App, Platform, Plugin, PluginSettingTab, Setting} from 'obsidian';
 import {SettingsService} from "../service/SettingsService";
 
 export class SettingsTab extends PluginSettingTab {
@@ -16,11 +16,20 @@ export class SettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Run on start')
-			.setDesc('Automatically convert Canvas files when plugin loads')
+			.setDesc('Automatically convert files when plugin loads')
 			.addToggle(toggle => toggle
 				.setValue(this.settingsService.runOnStart)
 				.onChange(async (value) => {
 					await this.settingsService.updateRunOnStart(value);
+				}));
+
+		new Setting(containerEl)
+			.setName('Run on start (Mobile)')
+			.setDesc('Automatically convert files when plugin loads on mobile devices. Separate from desktop setting to help prevent crashes.')
+			.addToggle(toggle => toggle
+				.setValue(this.settingsService.runOnStartMobile)
+				.onChange(async (value) => {
+					await this.settingsService.updateRunOnStartMobile(value);
 				}));
 
 		new Setting(containerEl)

@@ -11,6 +11,7 @@ import { JpegConverterService } from './service/JpegConverterService';
 import { GeminiAttachmentParserService } from './service/AttachmentParserService';
 import { PdfConverterService } from './service/PdfConverterService';
 import { FatalProcessingError } from './service/AttachmentParserService';
+import { Platform } from 'obsidian';
 
 export default class ObsidianIndexer extends Plugin {
 	private isConverting = false;
@@ -101,8 +102,12 @@ export default class ObsidianIndexer extends Plugin {
 			},
 		});
 
-		// Schedule a second conversion after 2-second delay if runOnStart is enabled
-		if (settingsService.runOnStart) {
+		// Schedule a delayed conversion if runOnStart is enabled
+		const shouldAutoStart = Platform.isMobile 
+			? settingsService.runOnStartMobile 
+			: settingsService.runOnStart;
+
+		if (shouldAutoStart) {
 			window.setTimeout(async () => {
 				await runConversion();
 			}, 2000);
