@@ -1,5 +1,6 @@
 import {File} from "../../src/dao/FileDao";
 import {FileAdapter} from "../../src/dao/FileAdapter";
+import {AdapterFile} from "../../src/dao/FileAdapter";
 
 export class InMemoryFileAdapter implements FileAdapter {
 	private storage: Map<string, string> = new Map();
@@ -81,45 +82,34 @@ export class InMemoryFileAdapter implements FileAdapter {
 		this.modificationTimes.set(filePath, Date.now());
 	}
 
-	async getFiles(): Promise<File[]> {
+	async getFiles(): Promise<AdapterFile[]> {
 		const textFiles = Array.from(this.storage.entries())
 			.filter(([path]) => !path.endsWith('/.folder'))
-			.map(([path]) => this.createFileObject(path, false));
+			.map(([path]) => this.createAdapterFile(path, false));
 
 		const binaryFiles = Array.from(this.binaryStorage.entries())
-			.map(([path]) => this.createFileObject(path, true));
+			.map(([path]) => this.createAdapterFile(path, true));
 
 		return [...textFiles, ...binaryFiles];
 	}
 
-	private createFileObject(path: string, isBinary: boolean): File {
+	private createAdapterFile(path: string, isBinary: boolean): AdapterFile {
 		const name = path.split('/').pop() || path;
-
+		
 		if (!this.modificationTimes.has(path)) {
 			this.modificationTimes.set(path, Date.now());
 		}
 
-		return new File(
+		const sizeInBytes = isBinary 
+			? (this.binaryStorage.get(path)?.byteLength || 0)
+			: (new TextEncoder().encode(this.storage.get(path) || '').length);
+
+		return {
 			path,
 			name,
-			this.modificationTimes.get(path)!,
-			async () => {
-				if (isBinary) {
-					throw new Error('Cannot read binary file as text');
-				}
-				const content = this.storage.get(path);
-				if (content === undefined) {
-					throw new Error(`File not found: ${path}`);
-				}
-				return content;
-			},
-			async () => {
-				if (!isBinary) {
-					throw new Error('Cannot read text file as binary');
-				}
-				return this.readBinary(path);
-			}
-		);
+			modifiedTime: this.modificationTimes.get(path)!,
+			sizeInBytes
+		};
 	}
 
 	async readBinary(filePath: string): Promise<ArrayBuffer> {
@@ -136,6 +126,7 @@ export class InMemoryFileAdapter implements FileAdapter {
 	clear(): void {
 		this.storage.clear();
 		this.modificationTimes.clear();
+		this.binaryStorage.clear();
 	}
 
 }

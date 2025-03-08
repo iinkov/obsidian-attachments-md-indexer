@@ -1,36 +1,20 @@
 import {App, TFile, TAbstractFile} from 'obsidian';
 import {FileAdapter} from './FileAdapter';
 import {File} from "./FileDao";
+import {AdapterFile} from './FileAdapter';
 
 export class ObsidianFileAdapter implements FileAdapter {
 	constructor(private app: App) {
 	}
 
-	async getFiles(): Promise<File[]> {
+	async getFiles(): Promise<AdapterFile[]> {
 		const files = await this.app.vault.getFiles();
-		return Promise.all(
-			files.map(async file =>
-				new File(
-					file.path,
-					file.name,
-					file.stat.mtime,
-					async () => {
-						const f = this.app.vault.getAbstractFileByPath(file.path);
-						if (f && f instanceof TFile) {
-							return this.app.vault.read(f);
-						}
-						throw new Error(`File not found: ${file.path}`);
-					},
-					async () => {
-						const f = this.app.vault.getAbstractFileByPath(file.path);
-						if (f && f instanceof TFile) {
-							return this.app.vault.readBinary(f);
-						}
-						throw new Error(`File not found: ${file.path}`);
-					}
-				)
-			)
-		);
+		return files.map(file => ({
+			path: file.path,
+			name: file.name,
+			modifiedTime: file.stat.mtime,
+			sizeInBytes: file.stat.size
+		}));
 	}
 
 	async createFolder(folderPath: string): Promise<void> {
