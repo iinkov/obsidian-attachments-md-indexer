@@ -43,11 +43,11 @@ export abstract class BaseConverterService {
     protected abstract convertContent(source: File): Promise<string>;
 
     protected getSourceName(file: File): string {
-        return file.name.replace(this.config.targetExtension, this.config.sourceExtension);
+        return file.name.slice(0, -this.config.targetExtension.length) + this.config.sourceExtension;
     }
 
     protected getConvertedFilePath(sourceName: string): string {
-        return `${this.config.indexFolder}/${sourceName.replace(this.config.sourceExtension, '')}${this.config.targetExtension}`;
+        return `${this.config.indexFolder}/${sourceName.slice(0, -this.config.sourceExtension.length)}${this.config.targetExtension}`;
     }
 
     protected async removeOrphanedFiles(convertedFiles: File[], sourceFiles: File[]): Promise<string[]> {
