@@ -25,7 +25,7 @@ export class SettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Run on start (Mobile)')
-			.setDesc('Automatically convert files when plugin loads on mobile devices. Separate from desktop setting to help prevent crashes.')
+			.setDesc('Automatically convert files when plugin loads on mobile devices. Separate from desktop setting to help prevent crashes. It is recommended to enable this only after initial indexation is complete, as the process could take up to several days for large vaults and might cause Obsidian to restart if big files are present.')
 			.addToggle(toggle => toggle
 				.setValue(this.settingsService.runOnStartMobile)
 				.onChange(async (value) => {
