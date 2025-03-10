@@ -14,6 +14,20 @@ export class SettingsTab extends PluginSettingTab {
 
 		containerEl.empty();
 
+		// Add comprehensive plugin description at the top
+		const descriptionEl = containerEl.createEl('div', { cls: 'plugin-description' });
+		
+		descriptionEl.createEl('h2', { text: 'How This Plugin Works' });
+		
+		const mainDescription = descriptionEl.createEl('p');
+		mainDescription.innerHTML = `This plugin creates searchable markdown index files for various attachment types in your vault:
+		<ul>
+			<li><strong>Canvas files</strong> (.canvas): Converts canvas JSON into markdown format with links to nodes and groups</li>
+			<li><strong>PDF files</strong> (.pdf): Creates markdown files with PDF viewer and extracted content (requires Google API key)</li>
+			<li><strong>Image files</strong> (.png, .jpg, .jpeg): Creates markdown files with embedded images and extracted text content (requires Google API key)</li>
+		</ul>
+		All indexed files are stored in the specified index folder with their original extension plus ".md" (e.g., file.canvas → index/file.canvas.md).`;
+
 		new Setting(containerEl)
 			.setName('Run on start')
 			.setDesc('Automatically convert files when plugin loads')
