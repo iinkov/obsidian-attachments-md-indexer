@@ -61,7 +61,7 @@ export class SettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Google API Key')
-			.setDesc('API key for Google Gemini Vision API to extract text from images')
+			.setDesc('Without this key, only Canvas files will be indexed. While Gemini has daily limits, they are usually sufficient for free usage. PDFs and images will be indexed gradually over several hours. Get your key here: https://aistudio.google.com/app/apikey')
 			.addText(text => {
 				text.inputEl.type = 'password';
 				text.setPlaceholder('Enter your Google API key')
