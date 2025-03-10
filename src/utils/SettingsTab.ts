@@ -20,13 +20,13 @@ export class SettingsTab extends PluginSettingTab {
 		descriptionEl.createEl('h2', { text: 'How This Plugin Works' });
 		
 		const mainDescription = descriptionEl.createEl('p');
-		mainDescription.innerHTML = `This plugin creates searchable markdown index files for various attachment types in your vault:
+		mainDescription.innerHTML = `This plugin creates and synchronizes searchable markdown index files for various attachment types in your vault. It extracts and indexes complete text content, enabling both full-text and content-based search (e.g., finding images by words like "Flowers" or "Receipt"). Index files are automatically removed when originals are deleted:
 		<ul>
 			<li><strong>Canvas files</strong> (.canvas): Converts canvas JSON into markdown format with links to nodes and groups</li>
-			<li><strong>PDF files</strong> (.pdf): Creates markdown files with PDF viewer and extracted content (requires Google API key)</li>
-			<li><strong>Image files</strong> (.png, .jpg, .jpeg): Creates markdown files with embedded images and extracted text content (requires Google API key)</li>
+			<li><strong>PDF files</strong> (.pdf): Creates markdown files with PDF viewer and extracts complete text content for searching (requires Google API key)</li>
+			<li><strong>Image files</strong> (.png, .jpg, .jpeg): Creates markdown files with embedded images and extracts all visible text for searching (requires Google API key)</li>
 		</ul>
-		All indexed files are stored in the specified index folder with their original extension plus ".md" (e.g., file.canvas → index/file.canvas.md).`;
+		All indexed files are stored in the specified index folder with their original extension plus ".md" (e.g., file.canvas → index/file.canvas.md). The plugin maintains synchronization, updating index files when originals change and removing them when originals are deleted.`;
 
 		new Setting(containerEl)
 			.setName('Run on start')
