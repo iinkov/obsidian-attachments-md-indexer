@@ -6,7 +6,7 @@ export const INDEX_FILE_TEMPLATE =
 
 export const WEBPAGE_TEMPLATE = "![Web Page]({element})";
 
-export const CARD_TEMPLATE = "```\n{element}\n```";
+export const CARD_TEMPLATE = "{element}\n___";
 
 export const NOTE_TEMPLATE = "![[{element}]]";
 

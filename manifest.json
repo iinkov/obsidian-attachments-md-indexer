@@ -1,9 +1,9 @@
 {
 	"id": "attachments-md-indexer",
 	"name": "Attachments MD Indexer",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"minAppVersion": "1.8.9",
-	"description": "Creates searchable metadata notes for canvas files, PDFs, and images, enhancing graph view visibility and plugin compatibility",
+	"description": "Creates searchable metadata notes for Canvas files, PDFs, and images, enhancing graph view visibility and plugin compatibility",
 	"author": "Ian Inkov",
 	"isDesktopOnly": false
 }

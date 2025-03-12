@@ -6,13 +6,11 @@ This index file enables Obsidian and its plugins to manage canvas files effectiv
 
 # Cards
 
-```
 This text should be seen 1
-```
+___
 
-```
 This text should be seen 2
-```
+___
 
 # Notes
 
