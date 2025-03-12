@@ -61,7 +61,14 @@ export class SettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Google API Key')
-			.setDesc('Without this key, only Canvas files will be indexed. While Gemini has daily limits, they are usually sufficient for free usage. PDFs and images will be indexed gradually over several hours. Get your key here: https://aistudio.google.com/app/apikey')
+			.setDesc(createFragment(el => {
+				el.appendText('Without this key, only Canvas files will be indexed. While Gemini has daily limits, they are usually sufficient for free usage. PDFs and images will be indexed gradually over several hours. Get your key here: ');
+				el.createEl('a', {
+					href: 'https://aistudio.google.com/app/apikey',
+					text: 'https://aistudio.google.com/app/apikey',
+					cls: 'external-link'
+				});
+			}))
 			.addText(text => {
 				text.inputEl.type = 'password';
 				text.setPlaceholder('Enter your Google API key')
