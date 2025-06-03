@@ -108,9 +108,9 @@ export default class ObsidianIndexer extends Plugin {
 			: settingsService.runOnStart;
 
 		if (shouldAutoStart) {
-			window.setTimeout(async () => {
-				await runConversion();
-			}, 2000);
+			this.app.workspace.onLayoutReady(() => {
+				runConversion();
+			});
 		}
 	}
 
