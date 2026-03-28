@@ -56,6 +56,17 @@ describe('Integration Test: Image Indexer Conversion', () => {
         expect(content.length).toBeGreaterThan(200);
     }
 
+    async function getIndexedFilePath(sourceName: string): Promise<string> {
+        const files = await fileAdapter.getFiles();
+        const baseName = sourceName.split('.').slice(0, -1).join('.');
+        const match = files.find(f => 
+            f.path.startsWith(`index/${baseName}-`) && 
+            f.path.endsWith('.png.md')
+        );
+        if (!match) throw new Error(`Indexed file not found for ${sourceName}`);
+        return match.path;
+    }
+
     it('should create an image file, run the indexer, and verify the .png.md file', async () => {
         // Step 1: Create a test image file using the FileAdapter
         await createImageFile('test-image.png');
@@ -64,7 +75,7 @@ describe('Integration Test: Image Indexer Conversion', () => {
         await pngConverter.convertFiles();
 
         // Step 3: Verify that the .md file is created and contains expected structure
-        const expectedMdPath = 'index/test-image.png.md';
+        const expectedMdPath = await getIndexedFilePath('test-image.png');
         const convertedContent = await fileAdapter.read(expectedMdPath);
         verifyMarkdownStructure(convertedContent, 'test-image.png');
     }, { timeout: TEST_TIMEOUT });
@@ -74,14 +85,15 @@ describe('Integration Test: Image Indexer Conversion', () => {
         await createImageFile('test-image2.png');
         await pngConverter.convertFiles();
 
-        const files = [
-            { path: 'index/test-image.png.md', name: 'test-image.png' },
-            { path: 'index/test-image2.png.md', name: 'test-image2.png' }
+        const fileData = [
+            { source: 'test-image.png', name: 'test-image.png' },
+            { source: 'test-image2.png', name: 'test-image2.png' }
         ];
 
-        for (const file of files) {
-            const convertedContent = await fileAdapter.read(file.path);
-            verifyMarkdownStructure(convertedContent, file.name);
+        for (const data of fileData) {
+            const path = await getIndexedFilePath(data.source);
+            const convertedContent = await fileAdapter.read(path);
+            verifyMarkdownStructure(convertedContent, data.name);
         }
     }, { timeout: TEST_TIMEOUT });
 
@@ -93,7 +105,7 @@ describe('Integration Test: Image Indexer Conversion', () => {
         await createImageFile('test-image2.png');
         await pngConverter.convertFiles();
 
-        const expectedMdPath = 'index/test-image2.png.md';
+        const expectedMdPath = await getIndexedFilePath('test-image2.png');
         const convertedContent = await fileAdapter.read(expectedMdPath);
         verifyMarkdownStructure(convertedContent, 'test-image2.png');
     }, { timeout: TEST_TIMEOUT });
@@ -102,7 +114,7 @@ describe('Integration Test: Image Indexer Conversion', () => {
         await createImageFile('test-image.png');
         await pngConverter.convertFiles();
 
-        const mdPath = 'index/test-image.png.md';
+        const mdPath = await getIndexedFilePath('test-image.png');
         expect(await fileAdapter.read(mdPath)).toBeDefined();
 
         await fileAdapter.delete('test-image.png');

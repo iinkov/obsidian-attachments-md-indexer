@@ -3,6 +3,7 @@ export class File {
 		public path: string,
 		public name: string,
 		public modifiedTime: number,
+		public creationTime: number,
 		public sizeInBytes: number,
 		private contentResolver: () => Promise<string>,
 		private binaryContentResolver: () => Promise<ArrayBuffer>

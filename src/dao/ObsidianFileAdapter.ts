@@ -13,6 +13,7 @@ export class ObsidianFileAdapter implements FileAdapter {
 			path: file.path,
 			name: file.name,
 			modifiedTime: file.stat.mtime,
+			creationTime: file.stat.ctime,
 			sizeInBytes: file.stat.size
 		}));
 	}
@@ -49,6 +50,14 @@ export class ObsidianFileAdapter implements FileAdapter {
 			throw new Error(`File not found: ${filePath}`);
 		}
 		await this.app.fileManager.trashFile(file);
+	}
+
+	async rename(oldPath: string, newPath: string): Promise<void> {
+		const file = this.app.vault.getAbstractFileByPath(oldPath);
+		if (!file) {
+			throw new Error(`File not found: ${oldPath}`);
+		}
+		await this.app.vault.rename(file, newPath);
 	}
 
 	async readBinary(filePath: string): Promise<ArrayBuffer> {

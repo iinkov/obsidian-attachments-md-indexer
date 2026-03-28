@@ -5,6 +5,7 @@ import {AdapterFile} from "../../src/dao/FileAdapter";
 export class InMemoryFileAdapter implements FileAdapter {
 	private storage: Map<string, string> = new Map();
 	private modificationTimes: Map<string, number> = new Map();
+	private creationTimes: Map<string, number> = new Map();
 	private binaryStorage: Map<string, ArrayBuffer> = new Map();
 
 	async createFolder(path: string): Promise<void> {
@@ -48,6 +49,38 @@ export class InMemoryFileAdapter implements FileAdapter {
 		this.storage.delete(path);
 	}
 
+	async rename(oldPath: string, newPath: string): Promise<void> {
+		const normalize = (p: string) => p.endsWith('/') ? p : `${p}/`;
+		const oldFolderPrefix = normalize(oldPath);
+		const newFolderPrefix = normalize(newPath);
+
+		// Handle exact match (file rename)
+		if (this.storage.has(oldPath)) {
+			this.storage.set(newPath, this.storage.get(oldPath)!);
+			this.storage.delete(oldPath);
+		}
+		if (this.binaryStorage.has(oldPath)) {
+			this.binaryStorage.set(newPath, this.binaryStorage.get(oldPath)!);
+			this.binaryStorage.delete(oldPath);
+		}
+		
+		// Handle folder contents rename
+		const renameInMap = (map: Map<string, any>) => {
+			for (const path of Array.from(map.keys())) {
+				if (path.startsWith(oldFolderPrefix)) {
+					const relativePath = path.substring(oldFolderPrefix.length);
+					map.set(newFolderPrefix + relativePath, map.get(path));
+					map.delete(path);
+				}
+			}
+		};
+
+		renameInMap(this.storage);
+		renameInMap(this.binaryStorage);
+		renameInMap(this.modificationTimes);
+		renameInMap(this.creationTimes);
+	}
+
 	async create(filePath: string, content: string): Promise<void> {
 		if (this.storage.has(filePath)) {
 			throw new Error('File already exists');
@@ -60,7 +93,11 @@ export class InMemoryFileAdapter implements FileAdapter {
 		}
 
 		this.storage.set(filePath, content);
-		this.modificationTimes.set(filePath, Date.now());
+		const now = Date.now();
+		this.modificationTimes.set(filePath, now);
+		if (!this.creationTimes.has(filePath)) {
+			this.creationTimes.set(filePath, now);
+		}
 	}
 
 	async modify(filePath: string, content: string): Promise<void> {
@@ -79,7 +116,11 @@ export class InMemoryFileAdapter implements FileAdapter {
 		}
 
 		this.binaryStorage.set(filePath, content);
-		this.modificationTimes.set(filePath, Date.now());
+		const now = Date.now();
+		this.modificationTimes.set(filePath, now);
+		if (!this.creationTimes.has(filePath)) {
+			this.creationTimes.set(filePath, now);
+		}
 	}
 
 	async getFiles(): Promise<AdapterFile[]> {
@@ -96,8 +137,12 @@ export class InMemoryFileAdapter implements FileAdapter {
 	private createAdapterFile(path: string, isBinary: boolean): AdapterFile {
 		const name = path.split('/').pop() || path;
 		
+		if (!this.creationTimes.has(path)) {
+			this.creationTimes.set(path, Date.now());
+		}
+		
 		if (!this.modificationTimes.has(path)) {
-			this.modificationTimes.set(path, Date.now());
+			this.modificationTimes.set(path, this.creationTimes.get(path)!);
 		}
 
 		const sizeInBytes = isBinary 
@@ -108,6 +153,7 @@ export class InMemoryFileAdapter implements FileAdapter {
 			path,
 			name,
 			modifiedTime: this.modificationTimes.get(path)!,
+			creationTime: this.creationTimes.get(path)!,
 			sizeInBytes
 		};
 	}
@@ -126,6 +172,7 @@ export class InMemoryFileAdapter implements FileAdapter {
 	clear(): void {
 		this.storage.clear();
 		this.modificationTimes.clear();
+		this.creationTimes.clear();
 		this.binaryStorage.clear();
 	}
 

@@ -7,13 +7,20 @@ export interface ConversionConfig {
     targetExtension: string;
 }
 
+export interface ConversionStats {
+    createdCount: number;
+    modifiedCount: number;
+    removedCount: number;
+    totalFiles: number;
+}
+
 export abstract class BaseConverterService {
     constructor(
         protected fileDao: FileDao,
         protected config: ConversionConfig
     ) {}
 
-    async convertFiles(): Promise<void> {
+    async convertFiles(): Promise<ConversionStats> {
         try {
             await this.fileDao.createFolder(this.config.indexFolder);
 
@@ -31,30 +38,46 @@ export abstract class BaseConverterService {
             ]);
 
             this.logConversionResults(removedFiles, createdFiles, modifiedFiles, sourceFiles.length);
+            
+            return {
+                createdCount: createdFiles.count,
+                modifiedCount: modifiedFiles.count,
+                removedCount: removedFiles.length,
+                totalFiles: sourceFiles.length
+            };
         } catch (error) {
             console.error('Error during conversion:', error);
             
             if (error instanceof FatalProcessingError) {
                 throw error;
             }
+
+            return { createdCount: 0, modifiedCount: 0, removedCount: 0, totalFiles: 0 };
         }
     }
 
     protected abstract convertContent(source: File): Promise<string>;
 
-    protected getSourceName(file: File): string {
-        return file.name.slice(0, -this.config.targetExtension.length) + this.config.sourceExtension;
+    private formatReadableDate(timestampMs: number): string {
+        const date = new Date(timestampMs);
+        const pad = (n: number, length: number = 2) => n.toString().padStart(length, '0');
+        
+        return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}` +
+               `${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}` +
+               `${pad(date.getMilliseconds(), 3)}`;
     }
 
-    protected getConvertedFilePath(sourceName: string): string {
-        return `${this.config.indexFolder}/${sourceName.slice(0, -this.config.sourceExtension.length)}${this.config.targetExtension}`;
+    protected getConvertedFilePath(source: File): string {
+        const rawName = source.name.slice(0, -this.config.sourceExtension.length);
+        const postfix = this.formatReadableDate(source.creationTime);
+        return `${this.config.indexFolder}/${rawName}-${postfix}${this.config.targetExtension}`;
     }
 
     protected async removeOrphanedFiles(convertedFiles: File[], sourceFiles: File[]): Promise<string[]> {
-        const sourceNames = new Set(sourceFiles.map(f => f.name));
+        const validTargetPaths = new Set(sourceFiles.map(f => this.getConvertedFilePath(f)));
 
         const removedFiles = convertedFiles
-            .filter(convertedFile => !sourceNames.has(this.getSourceName(convertedFile)))
+            .filter(convertedFile => !validTargetPaths.has(convertedFile.path))
             .map(async convertedFile => {
                 try {
                     await this.fileDao.deleteFile(convertedFile.path);
@@ -72,19 +95,21 @@ export abstract class BaseConverterService {
         count: number;
         files: string[]
     }> {
-        const convertedNames = new Set(convertedFiles.map(f => this.getSourceName(f)));
+        const convertedFilePaths = new Set(convertedFiles.map(f => f.path));
 
         const processedNames = [];
-        for (const source of sourceFiles.filter(source => !convertedNames.has(source.name))) {
-            try {
-                const targetPath = this.getConvertedFilePath(source.name);
-                await this.convertAndSave(source, targetPath);
-                processedNames.push(source.name);
-            } catch (error) {
-                if (error instanceof FatalProcessingError) {
-                    throw error;
+        for (const source of sourceFiles) {
+            const targetPath = this.getConvertedFilePath(source);
+            if (!convertedFilePaths.has(targetPath)) {
+                try {
+                    await this.convertAndSave(source, targetPath);
+                    processedNames.push(source.name);
+                } catch (error) {
+                    if (error instanceof FatalProcessingError) {
+                        throw error;
+                    }
+                    console.error(`Error processing file ${source.name}:`, error);
                 }
-                console.error(`Error processing file ${source.name}:`, error);
             }
         }
         return { count: processedNames.length, files: processedNames };
@@ -96,17 +121,17 @@ export abstract class BaseConverterService {
     }> {
         const convertedFileMap = new Map(
             convertedFiles.map(convertedFile => [
-                this.getSourceName(convertedFile),
+                convertedFile.path,
                 convertedFile
             ])
         );
 
         const modifiedFileNames = [];
         for (const source of sourceFiles) {
-            const convertedFile = convertedFileMap.get(source.name);
+            const targetPath = this.getConvertedFilePath(source);
+            const convertedFile = convertedFileMap.get(targetPath);
             if (convertedFile && source.modifiedTime >= convertedFile.modifiedTime) {
                 try {
-                    const targetPath = this.getConvertedFilePath(source.name);
                     await this.convertAndSave(source, targetPath);
                     modifiedFileNames.push(source.name);
                 } catch (error) {

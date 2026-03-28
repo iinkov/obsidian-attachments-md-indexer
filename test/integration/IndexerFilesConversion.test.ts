@@ -10,16 +10,17 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 	let canvasService: CanvasService;
 	let createCanvasFile: (filename: string) => Promise<void>;
 
+	const config = {
+		canvasPostfix: '.canvas.md',
+		runOnStart: false,
+		indexFolder: 'index'
+	};
+
 	beforeEach(() => {
 		fileAdapter = new InMemoryFileAdapter();
 
 		fileDao = new FileDaoImpl(fileAdapter);
 
-		const config = {
-			canvasPostfix: '.canvas.md',
-			runOnStart: false,
-			indexFolder: 'index'
-		};
 		canvasService = new CanvasService(fileDao, config);
 
 		// Clear dao to ensure a clean state
@@ -29,6 +30,18 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		createCanvasFile = (filename: string) => createTestCanvasFile(fileDao, filename);
 	});
 
+	async function getIndexedFilePath(sourcePath: string, folder = config.indexFolder, postfix = config.canvasPostfix): Promise<string> {
+		const files = await fileAdapter.getFiles();
+		const name = sourcePath.split('/').pop()!;
+		const baseName = name.slice(0, -'.canvas'.length);
+		const match = files.find(f => 
+			f.path.startsWith(`${folder}/${baseName}-`) && 
+			f.path.endsWith(postfix)
+		);
+		if (!match) throw new Error(`Indexed file not found for ${sourcePath}`);
+		return match.path;
+	}
+
 	it('should create a canvas file, run the indexer, and verify the .canvas.md file', async () => {
 		// Step 1: Create a canvas file using the FileAdapter
 		await createCanvasFile('Test.canvas');
@@ -37,7 +50,7 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Step 3: Verify that the .canvas.md file is created and contains expected content
-		const expectedMdPath = 'index/Test.canvas.md';
+		const expectedMdPath = await getIndexedFilePath('Test.canvas');
 		const convertedContent = await fileAdapter.read(expectedMdPath);
 		const expectedContent = readTestFile('Test.canvas.md');
 		expect(convertedContent).toEqual(expectedContent);
@@ -47,14 +60,16 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		// First file
 		await createCanvasFile('Test.canvas');
 		await canvasService.convertFiles();
-		let convertedContent = await fileAdapter.read('index/Test.canvas.md');
+		const testMdPath = await getIndexedFilePath('Test.canvas');
+		let convertedContent = await fileAdapter.read(testMdPath);
 		let expectedContent = readTestFile('Test.canvas.md');
 		expect(convertedContent).toEqual(expectedContent);
 
 		// Second file
 		await createCanvasFile('Test-empty1.canvas');
 		await canvasService.convertFiles();
-		convertedContent = await fileAdapter.read('index/Test-empty1.canvas.md');
+		const empty1MdPath = await getIndexedFilePath('Test-empty1.canvas');
+		convertedContent = await fileAdapter.read(empty1MdPath);
 		expectedContent = readTestFile('Test-empty1.canvas.md');
 		expect(convertedContent).toEqual(expectedContent);
 	});
@@ -63,7 +78,8 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		// Step 1: Create initial canvas file
 		await createCanvasFile('Test.canvas');
 		await canvasService.convertFiles();
-		let convertedContent = await fileAdapter.read('index/Test.canvas.md');
+		const mdPath = await getIndexedFilePath('Test.canvas');
+		let convertedContent = await fileAdapter.read(mdPath);
 		let expectedContent = readTestFile('Test.canvas.md');
 		expect(convertedContent).toEqual(expectedContent);
 
@@ -76,7 +92,7 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Step 3: Verify updated .canvas.md file
-		convertedContent = await fileAdapter.read('index/Test.canvas.md');
+		convertedContent = await fileAdapter.read(mdPath);
 		expectedContent = readTestFile('Test-single.canvas.md');
 		expectedContent = expectedContent.replace(/Test-single\.canvas/g, 'Test.canvas');
 		expect(convertedContent).toEqual(expectedContent);
@@ -98,7 +114,8 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Verify the .canvas.md file was created with empty content
-		const mdContent = await fileAdapter.read('index/Test-empty1.canvas.md');
+		const mdPath = await getIndexedFilePath('Test-empty1.canvas');
+		const mdContent = await fileAdapter.read(mdPath);
 		expect(mdContent).toBeDefined();
 		expect(mdContent).not.toContain('text');
 	});
@@ -111,7 +128,8 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Verify the .canvas.md file was created with empty content
-		const mdContent = await fileAdapter.read('index/Test-empty2.canvas.md');
+		const mdPath = await getIndexedFilePath('Test-empty2.canvas');
+		const mdContent = await fileAdapter.read(mdPath);
 		expect(mdContent).toBeDefined();
 		expect(mdContent).not.toContain('text');
 	});
@@ -122,7 +140,7 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Verify file was indexed
-		const mdPath = 'index/Test.canvas.md';
+		const mdPath = await getIndexedFilePath('Test.canvas');
 		expect(await fileAdapter.read(mdPath)).toBeDefined();
 
 		// Delete the canvas file
@@ -131,7 +149,8 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 
 		// Verify markdown file was removed
 		await expect(fileAdapter.read(mdPath)).rejects.toThrow();
-		expect((await fileDao.getFiles()).map(f => f.path)).not.toContain(mdPath);
+		const files = await fileDao.getFiles();
+		expect(files.map(f => f.path)).not.toContain(mdPath);
 	});
 
 	it('should recreate .canvas.md file if it was manually deleted', async () => {
@@ -140,7 +159,7 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Verify file was indexed
-		const mdPath = 'index/Test.canvas.md';
+		const mdPath = await getIndexedFilePath('Test.canvas');
 		expect(await fileAdapter.read(mdPath)).toBeDefined();
 
 		// Manually delete the .canvas.md file
@@ -151,11 +170,13 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Verify the .canvas.md file was recreated
-		const recreatedContent = await fileAdapter.read(mdPath);
+		const mdPathRecreated = await getIndexedFilePath('Test.canvas');
+		const recreatedContent = await fileAdapter.read(mdPathRecreated);
 		const expectedContent = readTestFile('Test.canvas.md');
 		expect(recreatedContent).toBeDefined();
 		expect(recreatedContent).toEqual(expectedContent);
-		expect((await fileDao.getFiles()).map(f => f.path)).toContain(mdPath);
+		const files = await fileDao.getFiles();
+		expect(files.map(f => f.path)).toContain(mdPathRecreated);
 	});
 
 	it('should not modify already indexed files when reindexing', async () => {
@@ -168,7 +189,7 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Get the indexed file's modification time by reading it directly
-		const mdPath = 'index/Test.canvas.md';
+		const mdPath = await getIndexedFilePath('Test.canvas');
 		const initialModifiedTime = (await fileAdapter.getFiles())
 			.find(f => f.path === mdPath)?.modifiedTime;
 		if (!initialModifiedTime) throw new Error('Could not get initial modified time');
@@ -181,8 +202,9 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Get the indexed file's modification time again
+		const mdPathAgain = await getIndexedFilePath('Test.canvas');
 		const finalModifiedTime = (await fileAdapter.getFiles())
-			.find(f => f.path === mdPath)?.modifiedTime;
+			.find(f => f.path === mdPathAgain)?.modifiedTime;
 		if (!finalModifiedTime) throw new Error('Could not get final modified time');
 
 		// Verify modification time is exactly the same
@@ -200,7 +222,7 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Verify initial conversion
-		const mdPath1 = 'index/Test.canvas.md';
+		const mdPath1 = await getIndexedFilePath('sub folder/Test.canvas');
 		let convertedContent = await fileAdapter.read(mdPath1);
 		let expectedContent = readTestFile('Test.canvas.md');
 		expect(convertedContent).toEqual(expectedContent);
@@ -258,7 +280,7 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Verify the .canvas.md file exists
-		const mdPath = 'index/Test.canvas.md';
+		const mdPath = await getIndexedFilePath('sub folder/Test.canvas');
 		expect(await fileAdapter.read(mdPath)).toBeDefined();
 
 		// Delete the canvas file
@@ -277,7 +299,7 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Get initial content
-		const mdPath = 'index/Test.canvas.md';
+		const mdPath = await getIndexedFilePath('Test.canvas');
 		const initialContent = await fileAdapter.read(mdPath);
 
 		// Modify source canvas file
@@ -288,7 +310,8 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await canvasService.convertFiles();
 
 		// Get updated content
-		const updatedContent = await fileAdapter.read(mdPath);
+		const mdPathUpdated = await getIndexedFilePath('Test.canvas');
+		const updatedContent = await fileAdapter.read(mdPathUpdated);
 
 		// Verify content changed
 		expect(updatedContent).not.toEqual(initialContent);
@@ -329,7 +352,7 @@ describe('Integration Test: Canvas Indexer Conversion', () => {
 		await customCanvasService.convertFiles();
 
 		// Verify output file path and content
-		const expectedPath = `${folder}/Test${postfix}`;
+		const expectedPath = await getIndexedFilePath('Test.canvas', folder, postfix);
 		const convertedContent = await fileAdapter.read(expectedPath);
 		const expectedContent = readGeneratedTestFile(`Test`);
 

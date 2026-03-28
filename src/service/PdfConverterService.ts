@@ -1,4 +1,4 @@
-import { BaseConverterService } from './BaseConverterService';
+import { BaseConverterService, ConversionStats } from './BaseConverterService';
 import { FileDao, File } from "../dao/FileDao";
 import { PDF_FILE_DESCRIPTION } from "../utils/constants";
 import { AttachmentParserService } from './AttachmentParserService';
@@ -30,12 +30,11 @@ ${content}
 `;
     }
 
-    override async convertFiles(): Promise<void> {
+    override async convertFiles(): Promise<ConversionStats> {
         if (!this.parser.validateApiKey()) {
             console.warn('No Google API key configured - PDF parsing will be skipped');
-            return;
+            return { createdCount: 0, modifiedCount: 0, removedCount: 0, totalFiles: 0 };
         }
-        await super.convertFiles();
-
+        return await super.convertFiles();
     }
 } 

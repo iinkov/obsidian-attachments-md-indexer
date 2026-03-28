@@ -4,6 +4,7 @@ export interface AdapterFile {
 	path: string;
 	name: string;
 	modifiedTime: number;
+	creationTime: number;
 	sizeInBytes: number;
 }
 
@@ -19,6 +20,8 @@ export interface FileAdapter {
 	create(filePath: string, content: string): Promise<void>;
 
 	delete(path: string): Promise<void>;
+
+	rename(oldPath: string, newPath: string): Promise<void>;
 
 	modify(filePath: string, content: string): Promise<void>;
 }
